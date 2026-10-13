@@ -58,167 +58,132 @@ def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
 
 
 class App(Scaffold):
-    """The flask object implements a WSGI application and acts as the central
-    object.  It is passed the name of the module or package of the
-    application.  Once it is created it will act as a central registry for
-    the view functions, the URL rules, template configuration and much more.
+    """Flask 对象实现 WSGI 应用程序并充当中心对象。  它传递应用程序的模块或包的名称。
+    一旦创建，它将充当视图函数、URL 规则、模板配置等的中央注册表。
 
-    The name of the package is used to resolve resources from inside the
-    package or the folder the module is contained in depending on if the
-    package parameter resolves to an actual python package (a folder with
-    an :file:`__init__.py` file inside) or a standard module (just a ``.py`` file).
+    包的名称用于解析包内部或模块所在文件夹中的资源，具体取决于包参数是否解析为实际的
+    python 包（内部包含 :file:`__init__.py` 文件的文件夹）或标准模块（只是一个 ``.py``
+    文件）。
 
-    For more information about resource loading, see :func:`open_resource`.
+    有关资源加载的更多信息，请参阅 :func:`open_resource` 。
 
-    Usually you create a :class:`Flask` instance in your main module or
-    in the :file:`__init__.py` file of your package like this::
+    通常，您在主模块或包的 :file:`__init__.py` 文件中创建一个 :class:`Flask` 实例，如下
+    所示::
 
         from flask import Flask
         app = Flask(__name__)
 
-    .. admonition:: About the First Parameter
+    .. admonition:: 关于第一个参数
 
-        The idea of the first parameter is to give Flask an idea of what
-        belongs to your application.  This name is used to find resources
-        on the filesystem, can be used by extensions to improve debugging
-        information and a lot more.
+        第一个参数的想法是让 Flask 了解什么属于您的应用程序。  该名称用于查找文件系统上
+        的资源，可以由扩展使用来改进调试信息等等。
 
-        So it's important what you provide there.  If you are using a single
-        module, `__name__` is always the correct value.  If you however are
-        using a package, it's usually recommended to hardcode the name of
-        your package there.
+        所以你在那里提供什么很重要。  如果您使用单个模块， `__name__` 始终是正确的值。
+        但是，如果您正在使用包，通常建议在此处硬编码包的名称。
 
-        For example if your application is defined in :file:`yourapplication/app.py`
-        you should create it with one of the two versions below::
+        例如，如果您的应用程序是在 :file:`yourapplication/app.py` 中定义的，您应该使用以
+        下两个版本之一创建它::
 
             app = Flask('yourapplication')
             app = Flask(__name__.split('.')[0])
 
-        Why is that?  The application will work even with `__name__`, thanks
-        to how resources are looked up.  However it will make debugging more
-        painful.  Certain extensions can make assumptions based on the
-        import name of your application.  For example the Flask-SQLAlchemy
-        extension will look for the code in your application that triggered
-        an SQL query in debug mode.  If the import name is not properly set
-        up, that debugging information is lost.  (For example it would only
-        pick up SQL queries in `yourapplication.app` and not
-        `yourapplication.views.frontend`)
+        这是为什么呢？  由于查找资源的方式，该应用程序甚至可以使用 `__name__` 运行。  然
+        而，这会让调试变得更加痛苦。  某些扩展可以根据应用程序的导入名称进行假设。  例如
+        ，Flask-SQLAlchemy 扩展将在应用程序中查找在调试模式下触发 SQL 查询的代码。  如果
+        导入名称设置不正确，调试信息就会丢失。  （例如，它只会在 `yourapplication.app`
+        中拾取 SQL 查询，而不会在 `yourapplication.views.frontend` 中拾取）
 
     .. versionadded:: 0.7
-       The `static_url_path`, `static_folder`, and `template_folder`
-       parameters were added.
+       添加了 `static_url_path` 、 `static_folder` 和 `template_folder` 参数。
 
     .. versionadded:: 0.8
-       The `instance_path` and `instance_relative_config` parameters were
-       added.
+       添加了 `instance_path` 和 `instance_relative_config` 参数。
 
     .. versionadded:: 0.11
-       The `root_path` parameter was added.
+       添加了 `root_path` 参数。
 
     .. versionadded:: 1.0
-       The ``host_matching`` and ``static_host`` parameters were added.
+       添加了 ``host_matching`` 和 ``static_host`` 参数。
 
     .. versionadded:: 1.0
-       The ``subdomain_matching`` parameter was added. Subdomain
-       matching needs to be enabled manually now. Setting
-       :data:`SERVER_NAME` does not implicitly enable it.
+       添加了 ``subdomain_matching`` 参数。现在需要手动启用子域匹配。设置
+       :data:`SERVER_NAME` 不会隐式启用它。
 
-    :param import_name: the name of the application package
-    :param static_url_path: can be used to specify a different path for the
-                            static files on the web.  Defaults to the name
-                            of the `static_folder` folder.
-    :param static_folder: The folder with static files that is served at
-        ``static_url_path``. Relative to the application ``root_path``
-        or an absolute path. Defaults to ``'static'``.
-    :param static_host: the host to use when adding the static route.
-        Defaults to None. Required when using ``host_matching=True``
-        with a ``static_folder`` configured.
-    :param host_matching: set ``url_map.host_matching`` attribute.
-        Defaults to False.
-    :param subdomain_matching: consider the subdomain relative to
-        :data:`SERVER_NAME` when matching routes. Defaults to False.
-    :param template_folder: the folder that contains the templates that should
-                            be used by the application.  Defaults to
-                            ``'templates'`` folder in the root path of the
-                            application.
-    :param instance_path: An alternative instance path for the application.
-                          By default the folder ``'instance'`` next to the
-                          package or module is assumed to be the instance
-                          path.
-    :param instance_relative_config: if set to ``True`` relative filenames
-                                     for loading the config are assumed to
-                                     be relative to the instance path instead
-                                     of the application root.
-    :param root_path: The path to the root of the application files.
-        This should only be set manually when it can't be detected
-        automatically, such as for namespace packages.
+    :param import_name: 应用程序包的名称
+    :param static_url_path: 可用于为网络上的静态文件指定不同的路径。  默认为
+        `static_folder` 文件夹的名称。
+    :param static_folder: 包含在 ``static_url_path`` 处提供的静态文件的文件夹。相对于应
+        用程序 ``root_path`` 或绝对路径。默认为 ``'static'`` 。
+    :param static_host: 添加静态路由时要使用的主机。默认为 None。在配置了
+        ``static_folder`` 的情况下使用 ``host_matching=True`` 时需要。
+    :param host_matching: 设置 ``url_map.host_matching`` 属性。默认为 False。
+    :param subdomain_matching: 匹配路由时考虑相对于 :data:`SERVER_NAME` 的子域。默认为
+        False。
+    :param template_folder: 包含应用程序应使用的模板的文件夹。  默认为应用程序根路径中的
+        ``'templates'`` 文件夹。
+    :param instance_path: 应用程序的替代实例路径。默认情况下，包或模块旁边的文件夹
+        ``'instance'`` 被假定为实例路径。
+    :param instance_relative_config: 如果设置为 ``True`` ，则用于加载配置的相对文件名被
+        假定为相对于实例路径而不是应用程序根目录。
+    :param root_path: 应用程序文件的根路径。仅当无法自动检测时才应手动设置，例如命名空间
+        包。
     """
 
-    #: The class of the object assigned to :attr:`aborter`, created by
-    #: :meth:`create_aborter`. That object is called by
-    #: :func:`flask.abort` to raise HTTP errors, and can be
-    #: called directly as well.
+    #: 分配给 :attr:`aborter` 的对象的类，由 :meth:`create_aborter` 创建。该对象由
+    #: :func:`flask.abort` 调用以引发 HTTP 错误，也可以直接调用。
     #:
-    #: Defaults to :class:`werkzeug.exceptions.Aborter`.
+    #: 默认为 :class:`werkzeug.exceptions.Aborter` 。
     #:
     #: .. versionadded:: 2.2
     aborter_class = Aborter
 
-    #: The class that is used for the Jinja environment.
+    #: 用于 Jinja 环境的类。
     #:
     #: .. versionadded:: 0.11
     jinja_environment = Environment
 
-    #: The class that is used for the :data:`~flask.g` instance.
+    #: 用于 :data:`~flask.g` 实例的类。
     #:
-    #: Example use cases for a custom class:
+    #: 自定义类的示例用例：
     #:
-    #: 1. Store arbitrary attributes on flask.g.
-    #: 2. Add a property for lazy per-request database connectors.
-    #: 3. Return None instead of AttributeError on unexpected attributes.
-    #: 4. Raise exception if an unexpected attr is set, a "controlled" flask.g.
+    #: 1. 在 flask.g 上存储任意属性。
+    #: 2. 为每个请求的惰性数据库连接器添加一个属性。
+    #: 3. 对于意外属性，返回 None 而不是 AttributeError。
+    #: 4. 如果设置了意外的属性，即 "controlled" flask.g，则引发异常。
     #:
     #: .. versionadded:: 0.10
-    #:     Renamed from ``request_globals_class`.
+    #:     从“ `request_globals_class` ”重命名。
     app_ctx_globals_class = _AppCtxGlobals
 
-    #: The class that is used for the ``config`` attribute of this app.
-    #: Defaults to :class:`~flask.Config`.
+    #: 用于此应用程序的 ``config`` 属性的类。默认为 :class:`~flask.Config` 。
     #:
-    #: Example use cases for a custom class:
+    #: 自定义类的示例用例：
     #:
-    #: 1. Default values for certain config options.
-    #: 2. Access to config values through attributes in addition to keys.
+    #: 1. 某些配置选项的默认值。
+    #: 2. 除了键之外，还可以通过属性访问配置值。
     #:
     #: .. versionadded:: 0.11
     config_class = Config
 
-    #: The testing flag.  Set this to ``True`` to enable the test mode of
-    #: Flask extensions (and in the future probably also Flask itself).
-    #: For example this might activate test helpers that have an
-    #: additional runtime cost which should not be enabled by default.
+    #: 测试标志。  将其设置为 ``True`` 以启用 Flask 扩展的测试模式（将来可能还包括 Flask
+    #: 本身）。例如，这可能会激活具有额外运行时成本的测试助手，默认情况下不应启用该成本
+    #: 。
     #:
-    #: If this is enabled and PROPAGATE_EXCEPTIONS is not changed from the
-    #: default it's implicitly enabled.
+    #: 如果启用此功能并且 PROPAGATE_EXCEPTIONS 未更改默认值，则它会隐式启用。
     #:
-    #: This attribute can also be configured from the config with the
-    #: ``TESTING`` configuration key.  Defaults to ``False``.
+    #: 还可以使用 ``TESTING`` 配置键从配置中配置此属性。  默认为 ``False`` 。
     testing = ConfigAttribute[bool]("TESTING")
 
-    #: If a secret key is set, cryptographic components can use this to
-    #: sign cookies and other things. Set this to a complex random value
-    #: when you want to use the secure cookie for instance.
+    #: 如果设置了密钥，加密组件可以使用它来签署 cookie 和其他内容。例如，当您想要使用安
+    #: 全 cookie 时，请将其设置为复杂的随机值。
     #:
-    #: This attribute can also be configured from the config with the
-    #: :data:`SECRET_KEY` configuration key. Defaults to ``None``.
+    #: 还可以使用 :data:`SECRET_KEY` 配置键从配置中配置此属性。默认为 ``None`` 。
     secret_key = ConfigAttribute[str | bytes | None]("SECRET_KEY")
 
-    #: A :class:`~datetime.timedelta` which is used to set the expiration
-    #: date of a permanent session.  The default is 31 days which makes a
-    #: permanent session survive for roughly one month.
+    #: :class:`~datetime.timedelta` 用于设置永久会话的到期日期。  默认值为 31 天，这使得
+    #: 永久会话可以存活大约一个月。
     #:
-    #: This attribute can also be configured from the config with the
-    #: ``PERMANENT_SESSION_LIFETIME`` configuration key.  Defaults to
+    #: 还可以使用 ``PERMANENT_SESSION_LIFETIME`` 配置键从配置中配置此属性。  默认为
     #: ``timedelta(days=31)``
     permanent_session_lifetime = ConfigAttribute[timedelta](
         "PERMANENT_SESSION_LIFETIME",
@@ -226,50 +191,44 @@ class App(Scaffold):
     )
 
     json_provider_class: type[JSONProvider] = DefaultJSONProvider
-    """A subclass of :class:`~flask.json.provider.JSONProvider`. An
-    instance is created and assigned to :attr:`app.json` when creating
-    the app.
+    """:class:`~flask.json.provider.JSONProvider` 的子类。创建应用程序时会创建一个实例并
+    将其分配给 :attr:`app.json` 。
 
-    The default, :class:`~flask.json.provider.DefaultJSONProvider`, uses
-    Python's built-in :mod:`json` library. A different provider can use
-    a different JSON library.
+    默认值 :class:`~flask.json.provider.DefaultJSONProvider` 使用 Python 的内置
+    :mod:`json` 库。不同的提供者可以使用不同的 JSON 库。
 
     .. versionadded:: 2.2
     """
 
-    #: Options that are passed to the Jinja environment in
-    #: :meth:`create_jinja_environment`. Changing these options after
-    #: the environment is created (accessing :attr:`jinja_env`) will
-    #: have no effect.
+    #: 传递到 :meth:`create_jinja_environment` 中的 Jinja 环境的选项。创建环境后更改这些
+    #: 选项（访问 :attr:`jinja_env` ）将无效。
     #:
     #: .. versionchanged:: 1.1.0
-    #:     This is a ``dict`` instead of an ``ImmutableDict`` to allow
-    #:     easier configuration.
+    #:     这是 ``dict`` 而不是 ``ImmutableDict`` ，以允许更轻松的配置。
     #:
     jinja_options: dict[str, t.Any] = {}
 
-    #: The rule object to use for URL rules created.  This is used by
-    #: :meth:`add_url_rule`.  Defaults to :class:`werkzeug.routing.Rule`.
+    #: 用于创建 URL 规则的规则对象。  这是由 :meth:`add_url_rule` 使用的。  默认为
+    #: :class:`werkzeug.routing.Rule` 。
     #:
     #: .. versionadded:: 0.7
     url_rule_class = Rule
 
-    #: The map object to use for storing the URL rules and routing
-    #: configuration parameters. Defaults to :class:`werkzeug.routing.Map`.
+    #: 用于存储 URL 规则和路由配置参数的映射对象。默认为 :class:`werkzeug.routing.Map`
+    #: 。
     #:
     #: .. versionadded:: 1.1.0
     url_map_class = Map
 
-    #: The :meth:`test_client` method creates an instance of this test
-    #: client class. Defaults to :class:`~flask.testing.FlaskClient`.
+    #: :meth:`test_client` 方法创建此测试客户端类的实例。默认为
+    #: :class:`~flask.testing.FlaskClient` 。
     #:
     #: .. versionadded:: 0.7
     test_client_class: type[FlaskClient] | None = None
 
-    #: The :class:`~click.testing.CliRunner` subclass, by default
-    #: :class:`~flask.testing.FlaskCliRunner` that is used by
-    #: :meth:`test_cli_runner`. Its ``__init__`` method should take a
-    #: Flask app object as the first argument.
+    #: :class:`~click.testing.CliRunner` 子类，默认情况下
+    #: :class:`~flask.testing.FlaskCliRunner` 由 :meth:`test_cli_runner` 使用。它的
+    #: ``__init__`` 方法应该采用 Flask 应用程序对象作为第一个参数。
     #:
     #: .. versionadded:: 1.0
     test_cli_runner_class: type[FlaskCliRunner] | None = None
@@ -306,88 +265,73 @@ class App(Scaffold):
                 " A relative path was given instead."
             )
 
-        #: Holds the path to the instance folder.
+        #: 保存实例文件夹的路径。
         #:
         #: .. versionadded:: 0.8
         self.instance_path = instance_path
 
-        #: The configuration dictionary as :class:`Config`.  This behaves
-        #: exactly like a regular dictionary but supports additional methods
-        #: to load a config from files.
+        #: 配置字典为 :class:`Config` 。  其行为与常规字典完全相同，但支持从文件加载配置
+        #: 的其他方法。
         self.config = self.make_config(instance_relative_config)
 
-        #: An instance of :attr:`aborter_class` created by
-        #: :meth:`make_aborter`. This is called by :func:`flask.abort`
-        #: to raise HTTP errors, and can be called directly as well.
+        #: 由 :meth:`make_aborter` 创建的 :attr:`aborter_class` 实例。这由
+        #: :func:`flask.abort` 调用以引发 HTTP 错误，也可以直接调用。
         #:
         #: .. versionadded:: 2.2
-        #:     Moved from ``flask.abort``, which calls this object.
+        #:     从 ``flask.abort`` 移动，它调用此对象。
         self.aborter = self.make_aborter()
 
         self.json: JSONProvider = self.json_provider_class(self)
-        """Provides access to JSON methods. Functions in ``flask.json``
-        will call methods on this provider when the application context
-        is active. Used for handling JSON requests and responses.
+        """提供对 JSON 方法的访问。当应用程序上下文处于活动状态时， ``flask.json`` 中的
+        函数将调用此提供程序上的方法。用于处理 JSON 请求和响应。
 
-        An instance of :attr:`json_provider_class`. Can be customized by
-        changing that attribute on a subclass, or by assigning to this
-        attribute afterwards.
+        :attr:`json_provider_class` 的实例。可以通过更改子类上的该属性或随后分配给该属性
+        来进行自定义。
 
-        The default, :class:`~flask.json.provider.DefaultJSONProvider`,
-        uses Python's built-in :mod:`json` library. A different provider
-        can use a different JSON library.
+        默认值 :class:`~flask.json.provider.DefaultJSONProvider` 使用 Python 的内置
+        :mod:`json` 库。不同的提供者可以使用不同的 JSON 库。
 
         .. versionadded:: 2.2
         """
 
-        #: A list of functions that are called by
-        #: :meth:`handle_url_build_error` when :meth:`.url_for` raises a
-        #: :exc:`~werkzeug.routing.BuildError`. Each function is called
-        #: with ``error``, ``endpoint`` and ``values``. If a function
-        #: returns ``None`` or raises a ``BuildError``, it is skipped.
-        #: Otherwise, its return value is returned by ``url_for``.
+        #: 当 :meth:`.url_for` 引发 :exc:`~werkzeug.routing.BuildError` 时，
+        #: :meth:`handle_url_build_error` 调用的函数列表。每个函数都通过 ``error`` 、
+        #: ``endpoint`` 和 ``values`` 调用。如果函数返回 ``None`` 或引发 ``BuildError``
+        #: ，则会跳过该函数。否则，其返回值由 ``url_for`` 返回。
         #:
         #: .. versionadded:: 0.9
         self.url_build_error_handlers: list[
             t.Callable[[Exception, str, dict[str, t.Any]], str]
         ] = []
 
-        #: A list of functions that are called when the application context
-        #: is destroyed.  Since the application context is also torn down
-        #: if the request ends this is the place to store code that disconnects
-        #: from databases.
+        #: 应用程序上下文被销毁时调用的函数列表。  由于如果请求结束，应用程序上下文也会
+        #: 被拆除，因此这是存储与数据库断开连接的代码的地方。
         #:
         #: .. versionadded:: 0.9
         self.teardown_appcontext_funcs: list[ft.TeardownCallable] = []
 
-        #: A list of shell context processor functions that should be run
-        #: when a shell context is created.
+        #: 创建 shell 上下文时应运行的 shell 上下文处理器函数的列表。
         #:
         #: .. versionadded:: 0.11
         self.shell_context_processors: list[ft.ShellContextProcessorCallable] = []
 
-        #: Maps registered blueprint names to blueprint objects. The
-        #: dict retains the order the blueprints were registered in.
-        #: Blueprints can be registered multiple times, this dict does
-        #: not track how often they were attached.
+        #: 将注册的蓝图名称映射到蓝图对象。该字典保留蓝图注册的顺序。蓝图可以注册多次，
+        #: 该字典不跟踪它们附加的频率。
         #:
         #: .. versionadded:: 0.7
         self.blueprints: dict[str, Blueprint] = {}
 
-        #: a place where extensions can store application specific state.  For
-        #: example this is where an extension could store database engines and
-        #: similar things.
+        #: 扩展可以存储应用程序特定状态的地方。  例如，这是扩展可以存储数据库引擎和类似
+        #: 内容的地方。
         #:
-        #: The key must match the name of the extension module. For example in
-        #: case of a "Flask-Foo" extension in `flask_foo`, the key would be
-        #: ``'foo'``.
+        #: 字典键必须与扩展模块的名称匹配。例如，模块 `flask_foo` 中的 "Flask-Foo" 扩展
+        #: 应使用 ``'foo'`` 作为键。
         #:
         #: .. versionadded:: 0.7
         self.extensions: dict[str, t.Any] = {}
 
-        #: The :class:`~werkzeug.routing.Map` for this instance.  You can use
-        #: this to change the routing converters after the class was created
-        #: but before any routes are connected.  Example::
+        #: 此实例的 :class:`~werkzeug.routing.Map` 。  您可以在创建类之后但在连接任何路
+        #: 由之前使用它来更改路由转换器。  示例::
         #:
         #:    from werkzeug.routing import BaseConverter
         #:
@@ -404,8 +348,7 @@ class App(Scaffold):
 
         self.subdomain_matching = subdomain_matching
 
-        # tracks internally if the application already handled at least one
-        # request.
+        # 在内部跟踪应用程序是否已处理至少一个请求。
         self._got_first_request = False
 
     def _check_setup_finished(self, f_name: str) -> None:
@@ -422,11 +365,9 @@ class App(Scaffold):
 
     @cached_property
     def name(self) -> str:
-        """The name of the application.  This is usually the import name
-        with the difference that it's guessed from the run file if the
-        import name is main.  This name is used as a display name when
-        Flask needs the name of the application.  It can be set and overridden
-        to change the value.
+        """应用程序的名称。  这通常是导入名称，不同之处在于，如果导入名称是 main，则从运
+        行文件中猜测。  当 Flask 需要应用程序的名称时，此名称用作显示名称。  可以设置和
+        覆盖它来更改值。
 
         .. versionadded:: 0.8
         """
@@ -439,26 +380,22 @@ class App(Scaffold):
 
     @cached_property
     def logger(self) -> logging.Logger:
-        """A standard Python :class:`~logging.Logger` for the app, with
-        the same name as :attr:`name`.
+        """应用程序的标准 Python :class:`~logging.Logger` ，与 :attr:`name` 同名。
 
-        In debug mode, the logger's :attr:`~logging.Logger.level` will
-        be set to :data:`~logging.DEBUG`.
+        在调试模式下，记录器的 :attr:`~logging.Logger.level` 将设置为
+        :data:`~logging.DEBUG` 。
 
-        If there are no handlers configured, a default handler will be
-        added. See :doc:`/logging` for more information.
+        如果没有配置处理程序，则会添加默认处理程序。有关详细信息，请参阅 :doc:`/logging`
+        。
 
         .. versionchanged:: 1.1.0
-            The logger takes the same name as :attr:`name` rather than
-            hard-coding ``"flask.app"``.
+            记录器采用与 :attr:`name` 相同的名称，而不是硬编码 ``"flask.app"`` 。
 
         .. versionchanged:: 1.0.0
-            Behavior was simplified. The logger is always named
-            ``"flask.app"``. The level is only set during configuration,
-            it doesn't check ``app.debug`` each time. Only one format is
-            used, not different ones depending on ``app.debug``. No
-            handlers are removed, and a handler is only added if no
-            handlers are already configured.
+            行为被简化。记录器始终命名为 ``"flask.app"`` 。该级别仅在配置期间设置，不会
+            每次都检查 ``app.debug`` 。仅使用一种格式，不使用不同的格式，具体取决于
+            ``app.debug`` 。不会删除任何处理程序，并且仅在尚未配置任何处理程序时才会添加
+            处理程序。
 
         .. versionadded:: 0.3
         """
@@ -466,11 +403,9 @@ class App(Scaffold):
 
     @cached_property
     def jinja_env(self) -> Environment:
-        """The Jinja environment used to load templates.
+        """用于加载模板的 Jinja 环境。
 
-        The environment is created the first time this property is
-        accessed. Changing :attr:`jinja_options` after that will have no
-        effect.
+        第一次访问此属性时会创建环境。此后更改 :attr:`jinja_options` 将不起作用。
         """
         return self.create_jinja_environment()
 
@@ -478,11 +413,9 @@ class App(Scaffold):
         raise NotImplementedError()
 
     def make_config(self, instance_relative: bool = False) -> Config:
-        """Used to create the config attribute by the Flask constructor.
-        The `instance_relative` parameter is passed in from the constructor
-        of Flask (there named `instance_relative_config`) and indicates if
-        the config should be relative to the instance path or the root path
-        of the application.
+        """用于通过 Flask 构造函数创建配置属性。 `instance_relative` 参数从 Flask （名为
+        `instance_relative_config` ）的构造函数传入，并指示配置是否应相对于实例路径或应
+        用程序的根路径。
 
         .. versionadded:: 0.8
         """
@@ -494,22 +427,19 @@ class App(Scaffold):
         return self.config_class(root_path, defaults)
 
     def make_aborter(self) -> Aborter:
-        """Create the object to assign to :attr:`aborter`. That object
-        is called by :func:`flask.abort` to raise HTTP errors, and can
-        be called directly as well.
+        """创建要分配给 :attr:`aborter` 的对象。该对象由 :func:`flask.abort` 调用以引发
+        HTTP 错误，也可以直接调用。
 
-        By default, this creates an instance of :attr:`aborter_class`,
-        which defaults to :class:`werkzeug.exceptions.Aborter`.
+        默认情况下，这会创建 :attr:`aborter_class` 的实例，默认为
+        :class:`werkzeug.exceptions.Aborter` 。
 
         .. versionadded:: 2.2
         """
         return self.aborter_class()
 
     def auto_find_instance_path(self) -> str:
-        """Tries to locate the instance path if it was not provided to the
-        constructor of the application class.  It will basically calculate
-        the path to a folder named ``instance`` next to your main file or
-        the package.
+        """如果未将实例路径提供给应用程序类的构造函数，则尝试查找实例路径。  它基本上会
+        计算主文件或包旁边名为 ``instance`` 的文件夹的路径。
 
         .. versionadded:: 0.8
         """
@@ -519,27 +449,24 @@ class App(Scaffold):
         return os.path.join(prefix, "var", f"{self.name}-instance")
 
     def create_global_jinja_loader(self) -> DispatchingJinjaLoader:
-        """Creates the loader for the Jinja environment.  Can be used to
-        override just the loader and keeping the rest unchanged.  It's
-        discouraged to override this function.  Instead one should override
-        the :meth:`jinja_loader` function instead.
+        """为 Jinja 环境创建加载程序。  可用于仅覆盖加载程序并保持其余部分不变。  不鼓励
+        重写此函数。  相反，我们应该重写 :meth:`jinja_loader` 函数。
 
-        The global loader dispatches between the loaders of the application
-        and the individual blueprints.
+        全局加载器在应用程序的加载器和各个蓝图之间进行调度。
 
         .. versionadded:: 0.7
         """
         return DispatchingJinjaLoader(self)
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
-        """Returns ``True`` if autoescaping should be active for the given
-        template name. If no template name is given, returns `True`.
+        """如果给定模板名称的自动转义应处于活动状态，则返回 ``True`` 。如果未给出模板名
+        称，则返回 `True` 。
 
         .. versionchanged:: 3.2
-            Use case-insensitive comparison instead of only lower case.
+            使用不区分大小写的比较而不是仅使用小写字母。
 
         .. versionchanged:: 2.2
-            Autoescaping is now enabled by default for ``.svg`` files.
+            现在默认为 ``.svg`` 文件启用自动转义。
 
         .. versionadded:: 0.5
         """
@@ -549,14 +476,13 @@ class App(Scaffold):
 
     @property
     def debug(self) -> bool:
-        """Whether debug mode is enabled. When using ``flask run`` to start the
-        development server, an interactive debugger will be shown for unhandled
-        exceptions, and the server will be reloaded when code changes. This maps to the
-        :data:`DEBUG` config key. It may not behave as expected if set late.
+        """是否启用调试模式。当使用 ``flask run`` 启动开发服务器时，将显示一个交互式调试
+        器以查找未处理的异常，并且当代码更改时将重新加载服务器。这映射到 :data:`DEBUG`
+        配置键。如果设置较晚，它可能不会按预期运行。
 
-        **Do not enable debug mode when deploying in production.**
+        **在生产中部署时不要启用调试模式。**
 
-        Default: ``False``
+        默认值： ``False``
         """
         return self.config["DEBUG"]  # type: ignore[no-any-return]
 
@@ -569,34 +495,30 @@ class App(Scaffold):
 
     @setupmethod
     def register_blueprint(self, blueprint: Blueprint, **options: t.Any) -> None:
-        """Register a :class:`~flask.Blueprint` on the application. Keyword
-        arguments passed to this method will override the defaults set on the
-        blueprint.
+        """在应用程序上注册 :class:`~flask.Blueprint` 。传递给此方法的关键字参数将覆盖蓝
+        图上设置的默认值。
 
-        Calls the blueprint's :meth:`~flask.Blueprint.register` method after
-        recording the blueprint in the application's :attr:`blueprints`.
+        将蓝图记录到应用程序的 :attr:`blueprints` 中后，调用蓝图的
+        :meth:`~flask.Blueprint.register` 方法。
 
-        :param blueprint: The blueprint to register.
-        :param url_prefix: Blueprint routes will be prefixed with this.
-        :param subdomain: Blueprint routes will match on this subdomain.
-        :param url_defaults: Blueprint routes will use these default values for
-            view arguments.
-        :param options: Additional keyword arguments are passed to
-            :class:`~flask.blueprints.BlueprintSetupState`. They can be
-            accessed in :meth:`~flask.Blueprint.record` callbacks.
+        :param blueprint: 要注册的蓝图。
+        :param url_prefix: Blueprint 路由将以此为前缀。
+        :param subdomain: Blueprint 路由将在此子域上匹配。
+        :param url_defaults: Blueprint 路由将使用这些默认值作为视图参数。
+        :param options: 其他关键字参数传递给
+            :class:`~flask.blueprints.BlueprintSetupState` 。可以在
+            :meth:`~flask.Blueprint.record` 回调中访问它们。
 
         .. versionchanged:: 2.0.1
-            The ``name`` option can be used to change the (pre-dotted)
-            name the blueprint is registered with. This allows the same
-            blueprint to be registered multiple times with unique names
-            for ``url_for``.
+            ``name`` 选项可用于更改注册蓝图的（预点）名称。这允许使用 ``url_for`` 的唯一
+            名称多次注册相同的蓝图。
 
         .. versionadded:: 0.7
         """
         blueprint.register(self, options)
 
     def iter_blueprints(self) -> t.ValuesView[Blueprint]:
-        """Iterates over all blueprints by the order they were registered.
+        """按注册顺序迭代所有蓝图。
 
         .. versionadded:: 0.11
         """
@@ -616,9 +538,8 @@ class App(Scaffold):
         options["endpoint"] = endpoint
         methods = options.pop("methods", None)
 
-        # if the methods are not given and the view_func object knows its
-        # methods we can use that instead.  If neither exists, we go with
-        # a tuple of only ``GET`` as default.
+        # 如果没有给出方法并且 view_func 对象知道它的方法，我们可以使用它。  如果两者都
+        # 不存在，我们将使用仅 ``GET`` 的元组作为默认值。
         if methods is None:
             methods = getattr(view_func, "methods", None) or ("GET",)
         if isinstance(methods, str):
@@ -628,7 +549,7 @@ class App(Scaffold):
             )
         methods = {item.upper() for item in methods}
 
-        # Methods that should always be added
+        # 应始终添加的方法
         required_methods: set[str] = set(getattr(view_func, "required_methods", ()))
 
         if provide_automatic_options is None:
@@ -645,7 +566,7 @@ class App(Scaffold):
         if provide_automatic_options:
             required_methods.add("OPTIONS")
 
-        # Add the required methods now.
+        # 现在添加所需的方法。
         methods |= required_methods
 
         rule_obj = self.url_rule_class(rule, methods=methods, **options)
@@ -671,8 +592,8 @@ class App(Scaffold):
     def template_filter(
         self, name: T_template_filter | str | None = None
     ) -> T_template_filter | t.Callable[[T_template_filter], T_template_filter]:
-        """Decorate a function to register it as a custom Jinja filter. The name
-        is optional. The decorator may be used without parentheses.
+        """装饰一个函数以将其注册为自定义 Jinja 过滤器。该名称是可选的。装饰器可以在没有
+        括号的情况下使用。
 
         .. code-block:: python
 
@@ -680,11 +601,9 @@ class App(Scaffold):
             def reverse_filter(s):
                 return reversed(s)
 
-        The :meth:`add_template_filter` method may be used to register a
-        function later rather than decorating.
+        :meth:`add_template_filter` 方法可用于稍后注册函数而不是装饰。
 
-        :param name: The name to register the filter as. If not given, uses the
-            function's name.
+        :param name: 将过滤器注册为的名称。如果未给出，则使用函数的名称。
         """
         if callable(name):
             self.add_template_filter(name)
@@ -700,14 +619,12 @@ class App(Scaffold):
     def add_template_filter(
         self, f: ft.TemplateFilterCallable, name: str | None = None
     ) -> None:
-        """Register a function to use as a custom Jinja filter.
+        """注册一个函数以用作自定义 Jinja 过滤器。
 
-        The :meth:`template_filter` decorator can be used to register a function
-        by decorating instead.
+        :meth:`template_filter` 装饰器可用于通过装饰来注册函数。
 
-        :param f: The function to register.
-        :param name: The name to register the filter as. If not given, uses the
-            function's name.
+        :param f: 注册的函数。
+        :param name: 将过滤器注册为的名称。如果未给出，则使用函数的名称。
         """
         self.jinja_env.filters[name or f.__name__] = f
 
@@ -721,8 +638,8 @@ class App(Scaffold):
     def template_test(
         self, name: T_template_test | str | None = None
     ) -> T_template_test | t.Callable[[T_template_test], T_template_test]:
-        """Decorate a function to register it as a custom Jinja test. The name
-        is optional. The decorator may be used without parentheses.
+        """装饰一个函数以将其注册为自定义 Jinja 测试。该名称是可选的。装饰器可以在没有括
+        号的情况下使用。
 
         .. code-block:: python
 
@@ -735,11 +652,9 @@ class App(Scaffold):
                         return False
               return True
 
-        The :meth:`add_template_test` method may be used to register a function
-        later rather than decorating.
+        :meth:`add_template_test` 方法可用于稍后注册函数而不是装饰。
 
-        :param name: The name to register the filter as. If not given, uses the
-            function's name.
+        :param name: 将过滤器注册为的名称。如果未给出，则使用函数的名称。
 
         .. versionadded:: 0.10
         """
@@ -757,14 +672,12 @@ class App(Scaffold):
     def add_template_test(
         self, f: ft.TemplateTestCallable, name: str | None = None
     ) -> None:
-        """Register a function to use as a custom Jinja test.
+        """注册一个函数以用作自定义 Jinja 测试。
 
-        The :meth:`template_test` decorator can be used to register a function
-        by decorating instead.
+        :meth:`template_test` 装饰器可用于通过装饰来注册函数。
 
-        :param f: The function to register.
-        :param name: The name to register the test as. If not given, uses the
-            function's name.
+        :param f: 注册的函数。
+        :param name: 注册测试的名称。如果未给出，则使用函数的名称。
 
         .. versionadded:: 0.10
         """
@@ -780,8 +693,8 @@ class App(Scaffold):
     def template_global(
         self, name: T_template_global | str | None = None
     ) -> T_template_global | t.Callable[[T_template_global], T_template_global]:
-        """Decorate a function to register it as a custom Jinja global. The name
-        is optional. The decorator may be used without parentheses.
+        """装饰一个函数以将其注册为自定义 Jinja 全局函数。该名称是可选的。装饰器可以在没
+        有括号的情况下使用。
 
         .. code-block:: python
 
@@ -789,11 +702,9 @@ class App(Scaffold):
             def double(n):
                 return 2 * n
 
-        The :meth:`add_template_global` method may be used to register a
-        function later rather than decorating.
+        :meth:`add_template_global` 方法可用于稍后注册函数而不是装饰。
 
-        :param name: The name to register the global as. If not given, uses the
-            function's name.
+        :param name: 将全局注册为的名称。如果未给出，则使用函数的名称。
 
         .. versionadded:: 0.10
         """
@@ -811,14 +722,12 @@ class App(Scaffold):
     def add_template_global(
         self, f: ft.TemplateGlobalCallable, name: str | None = None
     ) -> None:
-        """Register a function to use as a custom Jinja global.
+        """注册一个函数以用作自定义 Jinja 全局函数。
 
-        The :meth:`template_global` decorator can be used to register a function
-        by decorating instead.
+        :meth:`template_global` 装饰器可用于通过装饰来注册函数。
 
-        :param f: The function to register.
-        :param name: The name to register the global as. If not given, uses the
-            function's name.
+        :param f: 注册的函数。
+        :param name: 将全局注册为的名称。如果未给出，则使用函数的名称。
 
         .. versionadded:: 0.10
         """
@@ -826,29 +735,24 @@ class App(Scaffold):
 
     @setupmethod
     def teardown_appcontext(self, f: T_teardown) -> T_teardown:
-        """Registers a function to be called when the app context is popped. The
-        context is popped at the end of a request, CLI command, or manual ``with``
-        block.
+        """注册一个在弹出应用程序上下文时调用的函数。上下文在请求、CLI 命令或手动
+        ``with`` 块结束时弹出。
 
         .. code-block:: python
 
             with app.app_context():
                 ...
 
-        When the ``with`` block exits (or ``ctx.pop()`` is called), the
-        teardown functions are called just before the app context is
-        made inactive.
+        当 ``with`` 块退出（或调用 ``ctx.pop()`` ）时，将在应用程序上下文变为非活动状态
+        之前调用清理函数。
 
-        When a teardown function was called because of an unhandled
-        exception it will be passed an error object. If an
-        :meth:`errorhandler` is registered, it will handle the exception
-        and the teardown will not receive it.
+        当由于未处理的异常而调用清理函数时，它将传递一个错误对象。如果注册了
+        :meth:`errorhandler` ，它将处理异常，而清理将不会收到它。
 
-        Teardown functions must avoid raising exceptions. If they
-        execute code that might fail they must surround that code with a
-        ``try``/``except`` block and log any errors.
+        清理函数必须避免引发异常。如果它们执行可能失败的代码，则必须用 ``try`` /
+        ``except`` 块包围该代码并记录所有错误。
 
-        The return values of teardown functions are ignored.
+        清理函数的返回值将被忽略。
 
         .. versionadded:: 0.9
         """
@@ -859,7 +763,7 @@ class App(Scaffold):
     def shell_context_processor(
         self, f: T_shell_context_processor
     ) -> T_shell_context_processor:
-        """Registers a shell context processor function.
+        """注册 shell 上下文处理器函数。
 
         .. versionadded:: 0.11
         """
@@ -869,10 +773,9 @@ class App(Scaffold):
     def _find_error_handler(
         self, e: Exception, blueprints: list[str]
     ) -> ft.ErrorHandlerCallable | None:
-        """Return a registered error handler for an exception in this order:
-        blueprint handler for a specific code, app handler for a specific code,
-        blueprint handler for an exception class, app handler for an exception
-        class, or ``None`` if a suitable handler is not found.
+        """按以下顺序返回异常的已注册错误处理程序：特定代码的蓝图处理程序、特定代码的应
+        用程序处理程序、异常类的蓝图处理程序、异常类的应用程序处理程序，如果未找到合适的
+        处理程序，则返回 ``None`` 。
         """
         exc_class, code = self._get_exc_class_and_code(type(e))
         names = (*blueprints, None)
@@ -892,19 +795,16 @@ class App(Scaffold):
         return None
 
     def trap_http_exception(self, e: Exception) -> bool:
-        """Checks if an HTTP exception should be trapped or not.  By default
-        this will return ``False`` for all exceptions except for a bad request
-        key error if ``TRAP_BAD_REQUEST_ERRORS`` is set to ``True``.  It
-        also returns ``True`` if ``TRAP_HTTP_EXCEPTIONS`` is set to ``True``.
+        """检查是否应捕获 HTTP 异常。  默认情况下，如果 ``TRAP_BAD_REQUEST_ERRORS`` 设置
+        为 ``True`` ，则除错误请求密钥错误外，所有异常都会返回 ``False`` 。  如果
+        ``TRAP_HTTP_EXCEPTIONS`` 设置为 ``True`` ，它还会返回 ``True`` 。
 
-        This is called for all HTTP exceptions raised by a view function.
-        If it returns ``True`` for any exception the error handler for this
-        exception is not called and it shows up as regular exception in the
-        traceback.  This is helpful for debugging implicitly raised HTTP
-        exceptions.
+        这是针对视图函数引发的所有 HTTP 异常调用的。如果它为任何异常返回 ``True`` ，则不
+        会调用该异常的错误处理程序，并且它在回溯中显示为常规异常。  这对于调试隐式引发的
+        HTTP 异常很有帮助。
 
         .. versionchanged:: 1.0
-            Bad request errors are not trapped by default in debug mode.
+            默认情况下，在调试模式下不会捕获不良请求错误。
 
         .. versionadded:: 0.8
         """
@@ -913,7 +813,7 @@ class App(Scaffold):
 
         trap_bad_request = self.config["TRAP_BAD_REQUEST_ERRORS"]
 
-        # if unset, trap key errors in debug mode
+        # 如果未设置，则在调试模式下捕获关键错误
         if (
             trap_bad_request is None
             and self.debug
@@ -927,30 +827,28 @@ class App(Scaffold):
         return False
 
     should_ignore_error: None = None
-    """If this method returns ``True``, the error will not be passed to
-    teardown handlers, and the context will not be preserved for
-    debugging.
+    """如果此方法返回 ``True`` ，则错误将不会传递给清理处理程序，并且不会保留上下文以进
+    行调试。
 
     .. deprecated:: 3.2
-        Handle errors as needed in teardown handlers instead.
+        根据需要在清理处理程序中处理错误。
 
     .. versionadded:: 0.10
     """
 
     def redirect(self, location: str, code: int = 303) -> BaseResponse:
-        """Create a redirect response object.
+        """创建重定向响应对象。
 
-        This is called by :func:`flask.redirect`, and can be called
-        directly as well.
+        这是由 :func:`flask.redirect` 调用的，也可以直接调用。
 
-        :param location: The URL to redirect to.
-        :param code: The status code for the redirect.
+        :param location: 要重定向到的 URL。
+        :param code: 重定向的状态代码。
 
         .. versionchanged:: 3.2
-            ``code`` defaults to ``303`` instead of ``302``.
+            ``code`` 默认为 ``303`` 而不是 ``302`` 。
 
         .. versionadded:: 2.2
-            Moved from ``flask.redirect``, which calls this method.
+            从 ``flask.redirect`` 移出，它调用此方法。
         """
         return _wz_redirect(
             location,
@@ -959,16 +857,15 @@ class App(Scaffold):
         )
 
     def inject_url_defaults(self, endpoint: str, values: dict[str, t.Any]) -> None:
-        """Injects the URL defaults for the given endpoint directly into
-        the values dictionary passed.  This is used internally and
-        automatically called on URL building.
+        """将给定端点的 URL 默认值直接注入到传递的值字典中。  这是内部使用的，并在 URL
+        构建中自动调用。
 
         .. versionadded:: 0.7
         """
         names: t.Iterable[str | None] = (None,)
 
-        # url_for may be called outside a request context, parse the
-        # passed endpoint instead of using request.blueprints.
+        # url_for 可以在请求上下文之外调用，解析传递的端点而不是使用 request.blueprints
+        # 。
         if "." in endpoint:
             names = chain(
                 names, reversed(_split_blueprint_path(endpoint.rpartition(".")[0]))
@@ -982,32 +879,28 @@ class App(Scaffold):
     def handle_url_build_error(
         self, error: BuildError, endpoint: str, values: dict[str, t.Any]
     ) -> str:
-        """Called by :meth:`.url_for` if a
-        :exc:`~werkzeug.routing.BuildError` was raised. If this returns
-        a value, it will be returned by ``url_for``, otherwise the error
-        will be re-raised.
+        """如果引发了 :exc:`~werkzeug.routing.BuildError` ，则由 :meth:`.url_for` 调用。
+        如果返回一个值，它将由 ``url_for`` 返回，否则将重新引发错误。
 
-        Each function in :attr:`url_build_error_handlers` is called with
-        ``error``, ``endpoint`` and ``values``. If a function returns
-        ``None`` or raises a ``BuildError``, it is skipped. Otherwise,
-        its return value is returned by ``url_for``.
+        :attr:`url_build_error_handlers` 中的每个函数都通过 ``error`` 、 ``endpoint`` 和
+        ``values`` 调用。如果函数返回 ``None`` 或引发 ``BuildError`` ，则会跳过该函数。
+        否则，其返回值由 ``url_for`` 返回。
 
-        :param error: The active ``BuildError`` being handled.
-        :param endpoint: The endpoint being built.
-        :param values: The keyword arguments passed to ``url_for``.
+        :param error: 正在处理活动的 ``BuildError`` 。
+        :param endpoint: 正在构建端点。
+        :param values: 传递给 ``url_for`` 的关键字参数。
         """
         for handler in self.url_build_error_handlers:
             try:
                 rv = handler(error, endpoint, values)
             except BuildError as e:
-                # make error available outside except block
+                # 使错误在除块之外可用
                 error = e
             else:
                 if rv is not None:
                     return rv
 
-        # Re-raise if called with an active exception, otherwise raise
-        # the passed in exception.
+        # 如果使用活动异常调用，则重新引发，否则引发传入的异常。
         if error is sys.exc_info()[1]:
             raise
 

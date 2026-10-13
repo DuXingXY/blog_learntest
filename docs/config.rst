@@ -509,7 +509,7 @@ sure to use uppercase letters for your config keys.
 
 Here is an example of a configuration file::
 
-    # Example configuration
+    # 配置示例
     SECRET_KEY = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
 
 Make sure to load the configuration very early on, so that extensions have
@@ -595,7 +595,7 @@ equal to the environment variable name without the prefix i.e.
 .. code-block:: python
 
     app.config.from_prefixed_env()
-    app.config["SECRET_KEY"]  # Is "5f352379324c22463451387a0aec5d2f"
+    app.config["SECRET_KEY"]  # 是 "5f352379324c22463451387a0aec5d2f"
 
 The prefix is ``FLASK_`` by default. This is configurable via the
 ``prefix`` argument of :meth:`~flask.Config.from_prefixed_env`.
@@ -619,7 +619,7 @@ exist on the parent dict will be initialized to an empty dict.
 
 .. code-block:: python
 
-    app.config["MYAPI"]["credentials"]["username"]  # Is "user123"
+    app.config["MYAPI"]["credentials"]["username"]  # 是 "user123"
 
 On Windows, environment variable keys are always uppercase, therefore
 the above example would end up as ``MYAPI__CREDENTIALS__USERNAME``.
@@ -708,7 +708,7 @@ then you must do so before calling :meth:`~flask.Config.from_object`::
     from configmodule import ProductionConfig
     app.config.from_object(ProductionConfig())
 
-    # Alternatively, import via string:
+    # 或者，通过字符串导入：
     from werkzeug.utils import import_string
     cfg = import_string('configmodule.ProductionConfig')()
     app.config.from_object(cfg)
@@ -717,16 +717,16 @@ Instantiating the configuration object allows you to use ``@property`` in
 your configuration classes::
 
     class Config(object):
-        """Base config, uses staging database server."""
+        """基本配置，使用临时数据库服务器。"""
         TESTING = False
         DB_SERVER = '192.168.1.56'
 
         @property
-        def DATABASE_URI(self):  # Note: all caps
+        def DATABASE_URI(self):  # 注：全部大写
             return f"mysql://user@{self.DB_SERVER}/foo"
 
     class ProductionConfig(Config):
-        """Uses production database server."""
+        """使用生产数据库服务器。"""
         DB_SERVER = '192.168.19.32'
 
     class DevelopmentConfig(Config):
@@ -834,6 +834,6 @@ Example usage for both::
     with open(filename) as f:
         config = f.read()
 
-    # or via open_instance_resource:
+    # 或通过 open_instance_resource:
     with app.open_instance_resource('application.cfg') as f:
         config = f.read()

@@ -108,7 +108,7 @@ Remember to set the error code when returning the response.
     def handle_bad_request(e):
         return 'bad request!', 400
 
-    # or, without the decorator
+    # 或者，没有装饰器
     app.register_error_handler(400, handle_bad_request)
 
 :exc:`werkzeug.exceptions.HTTPException` subclasses like
@@ -193,10 +193,10 @@ so you don't lose information about the HTTP error.
 
     @app.errorhandler(HTTPException)
     def handle_exception(e):
-        """Return JSON instead of HTML for HTTP errors."""
-        # start with the correct headers and status code from the error
+        """对于 HTTP 错误，返回 JSON 而不是 HTML。"""
+        # 从错误中的正确标头和状态代码开始
         response = e.get_response()
-        # replace the body with JSON
+        # 将主体替换为 JSON
         response.data = json.dumps({
             "code": e.code,
             "name": e.name,
@@ -221,11 +221,11 @@ responses, you could also pass them through directly.
 
     @app.errorhandler(Exception)
     def handle_exception(e):
-        # pass through HTTP errors
+        # 传递 HTTP 错误
         if isinstance(e, HTTPException):
             return e
 
-        # now you're handling non-HTTP exceptions only
+        # 现在您只处理非 HTTP 异常
         return render_template("500_generic.html", e=e), 500
 
 Error handlers still respect the exception class hierarchy. If you
@@ -276,17 +276,17 @@ username and we can't find it, we raise a "404 Not Found".
 
     from flask import abort, render_template, request
 
-    # a username needs to be supplied in the query args
-    # a successful request would be like /profile?username=jack
+    # 需要在查询参数中提供用户名
+    # 成功的请求类似于 /profile?username=jack
     @app.route("/profile")
     def user_profile():
         username = request.arg.get("username")
-        # if a username isn't supplied in the request, return a 400 bad request
+        # 如果请求中未提供用户名，则返回 400 错误请求
         if username is None:
             abort(400)
 
         user = get_user(username=username)
-        # if a user can't be found by their username, return 404 not found
+        # 如果无法通过用户名找到用户，则返回 404 not found
         if user is None:
             abort(404)
 
@@ -300,7 +300,7 @@ Here is another example implementation for a "404 Page Not Found" exception:
 
     @app.errorhandler(404)
     def page_not_found(e):
-        # note that we set the 404 status explicitly
+        # 请注意，我们明确设置了 404 状态
         return render_template('404.html'), 404
 
 When using :doc:`/patterns/appfactories`:
@@ -354,7 +354,7 @@ It can be implemented by rendering the template on "500 Internal Server Error":
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        # note that we set the 500 status explicitly
+        # 请注意，我们明确设置了 500 状态
         return render_template('500.html'), 500
 
 When using :doc:`/patterns/appfactories`:
@@ -379,12 +379,12 @@ When using :doc:`/blueprints`:
 
     blog = Blueprint('blog', __name__)
 
-    # as a decorator
+    # 作为装饰器
     @blog.errorhandler(500)
     def internal_server_error(e):
         return render_template('500.html'), 500
 
-    # or with register_error_handler
+    # 或使用 register_error_handler
     blog.register_error_handler(500, internal_server_error)
 
 
@@ -408,26 +408,26 @@ prefixes, they may be defined at the application level using the
 
     from flask import jsonify, render_template
 
-    # at the application level
-    # not the blueprint level
+    # 在应用程序级别
+    # 不是蓝图级别
     @app.errorhandler(404)
     def page_not_found(e):
-        # if a request is in our blog URL space
+        # 如果请求位于我们的博客 URL 空间中
         if request.path.startswith('/blog/'):
-            # we return a custom blog 404 page
+            # 我们返回一个自定义博客 404 页面
             return render_template("blog/404.html"), 404
         else:
-            # otherwise we return our generic site-wide 404 page
+            # 否则我们将返回通用的全站 404 页面
             return render_template("404.html"), 404
 
     @app.errorhandler(405)
     def method_not_allowed(e):
-        # if a request has the wrong method to our API
+        # 如果请求对我们的 API 有错误的方法
         if request.path.startswith('/api/'):
-            # we return a json saying so
+            # 我们返回一个 json 这么说
             return jsonify(message="Method Not Allowed"), 405
         else:
-            # otherwise we return a generic site-wide 405 page
+            # 否则我们会返回一个通用的全站 405 页面
             return render_template("405.html"), 405
 
 
@@ -490,8 +490,8 @@ This is a simple example:
     def invalid_api_usage(e):
         return jsonify(e.to_dict()), e.status_code
 
-    # an API app route for getting user information
-    # a correct request might be /api/user?user_id=420
+    # 用于获取用户信息的 API 应用程序路由
+    # 正确的请求可能是 /api/user?user_id=420
     @app.route("/api/user")
     def user_api(user_id):
         user_id = request.arg.get("user_id")

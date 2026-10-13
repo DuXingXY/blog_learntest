@@ -21,7 +21,7 @@ from ..templating import _default_template_ctx_processor
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
 
-# a singleton sentinel value for parameter defaults
+# 参数默认值的单例哨兵值
 _sentinel = object()
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
@@ -50,19 +50,17 @@ def setupmethod(f: F) -> F:
 
 
 class Scaffold:
-    """Common behavior shared between :class:`~flask.Flask` and
-    :class:`~flask.blueprints.Blueprint`.
+    """:class:`~flask.Flask` 和 :class:`~flask.blueprints.Blueprint` 之间共享的常见行为
+    。
 
-    :param import_name: The import name of the module where this object
-        is defined. Usually :attr:`__name__` should be used.
-    :param static_folder: Path to a folder of static files to serve.
-        If this is set, a static route will be added.
-    :param static_url_path: URL prefix for the static route.
-    :param template_folder: Path to a folder containing template files.
-        for rendering. If this is set, a Jinja loader will be added.
-    :param root_path: The path that static, template, and resource files
-        are relative to. Typically not set, it is discovered based on
-        the ``import_name``.
+    :param import_name: 定义此对象的模块的导入名称。通常应该使用 :attr:`__name__` 。
+    :param static_folder: 要提供服务的静态文件文件夹的路径。如果设置了此项，将添加静态路
+        由。
+    :param static_url_path: 静态路由的 URL 前缀。
+    :param template_folder: 包含模板文件的文件夹的路径。用于渲染。如果设置了此选项，则会
+        添加 Jinja 加载程序。
+    :param root_path: 静态文件、模板文件和资源文件的相对路径。通常不设置，它是基于
+        ``import_name`` 发现的。
 
     .. versionadded:: 2.0
     """
@@ -80,136 +78,103 @@ class Scaffold:
         template_folder: str | os.PathLike[str] | None = None,
         root_path: str | None = None,
     ):
-        #: The name of the package or module that this object belongs
-        #: to. Do not change this once it is set by the constructor.
+        #: 该对象所属的包或模块的名称。一旦由构造函数设置，就不要更改它。
         self.import_name = import_name
 
         self.static_folder = static_folder
         self.static_url_path = static_url_path
 
-        #: The path to the templates folder, relative to
-        #: :attr:`root_path`, to add to the template loader. ``None`` if
-        #: templates should not be added.
+        #: 要添加到模板加载器的模板文件夹的路径（相对于 :attr:`root_path` ）。 ``None``
+        #: 如果不应添加模板。
         self.template_folder = template_folder
 
         if root_path is None:
             root_path = get_root_path(self.import_name)
 
-        #: Absolute path to the package on the filesystem. Used to look
-        #: up resources contained in the package.
+        #: 文件系统上包的绝对路径。用于查找包中包含的资源。
         self.root_path = root_path
 
-        #: A dictionary mapping endpoint names to view functions.
+        #: 将端点名称映射到视图函数的字典。
         #:
-        #: To register a view function, use the :meth:`route` decorator.
+        #: 要注册视图函数，请使用 :meth:`route` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.view_functions: dict[str, ft.RouteCallable] = {}
 
-        #: A data structure of registered error handlers, in the format
-        #: ``{scope: {code: {class: handler}}}``. The ``scope`` key is
-        #: the name of a blueprint the handlers are active for, or
-        #: ``None`` for all requests. The ``code`` key is the HTTP
-        #: status code for ``HTTPException``, or ``None`` for
-        #: other exceptions. The innermost dictionary maps exception
-        #: classes to handler functions.
+        #: 已注册错误处理程序的数据结构，格式为 ``{scope: {code: {class: handler}}}`` 。
+        #: ``scope`` 键是处理程序处于活动状态的蓝图的名称，或 ``None`` 键是所有请求的名
+        #: 称。 ``code`` 键是 ``HTTPException`` 的 HTTP 状态代码，或者其他异常的
+        #: ``None`` 状态代码。最里面的字典将异常类映射到处理函数。
         #:
-        #: To register an error handler, use the :meth:`errorhandler`
-        #: decorator.
+        #: 要注册错误处理程序，请使用 :meth:`errorhandler` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.error_handler_spec: dict[
             ft.AppOrBlueprintKey,
             dict[int | None, dict[type[Exception], ft.ErrorHandlerCallable]],
         ] = defaultdict(lambda: defaultdict(dict))
 
-        #: A data structure of functions to call at the beginning of
-        #: each request, in the format ``{scope: [functions]}``. The
-        #: ``scope`` key is the name of a blueprint the functions are
-        #: active for, or ``None`` for all requests.
+        #: 在每个请求开始时调用的函数的数据结构，格式为 ``{scope: [functions]}`` 。
+        #: ``scope`` 键是函数处于活动状态的蓝图的名称，或 ``None`` 键是所有请求的名称。
         #:
-        #: To register a function, use the :meth:`before_request`
-        #: decorator.
+        #: 要注册函数，请使用 :meth:`before_request` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.before_request_funcs: dict[
             ft.AppOrBlueprintKey, list[ft.BeforeRequestCallable]
         ] = defaultdict(list)
 
-        #: A data structure of functions to call at the end of each
-        #: request, in the format ``{scope: [functions]}``. The
-        #: ``scope`` key is the name of a blueprint the functions are
-        #: active for, or ``None`` for all requests.
+        #: 在每个请求结束时调用的函数的数据结构，格式为 ``{scope: [functions]}`` 。
+        #: ``scope`` 键是函数处于活动状态的蓝图的名称，或 ``None`` 键是所有请求的名称。
         #:
-        #: To register a function, use the :meth:`after_request`
-        #: decorator.
+        #: 要注册函数，请使用 :meth:`after_request` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.after_request_funcs: dict[
             ft.AppOrBlueprintKey, list[ft.AfterRequestCallable[t.Any]]
         ] = defaultdict(list)
 
-        #: A data structure of functions to call at the end of each
-        #: request even if an exception is raised, in the format
-        #: ``{scope: [functions]}``. The ``scope`` key is the name of a
-        #: blueprint the functions are active for, or ``None`` for all
-        #: requests.
+        #: 即使引发异常，也会在每个请求结束时调用的函数的数据结构，格式为
+        #: ``{scope: [functions]}`` 。 ``scope`` 键是函数处于活动状态的蓝图的名称，或
+        #: ``None`` 键是所有请求的名称。
         #:
-        #: To register a function, use the :meth:`teardown_request`
-        #: decorator.
+        #: 要注册函数，请使用 :meth:`teardown_request` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.teardown_request_funcs: dict[
             ft.AppOrBlueprintKey, list[ft.TeardownCallable]
         ] = defaultdict(list)
 
-        #: A data structure of functions to call to pass extra context
-        #: values when rendering templates, in the format
-        #: ``{scope: [functions]}``. The ``scope`` key is the name of a
-        #: blueprint the functions are active for, or ``None`` for all
-        #: requests.
+        #: 渲染模板时调用以传递额外上下文值的函数的数据结构，格式为
+        #: ``{scope: [functions]}`` 。 ``scope`` 键是函数处于活动状态的蓝图的名称，或
+        #: ``None`` 键是所有请求的名称。
         #:
-        #: To register a function, use the :meth:`context_processor`
-        #: decorator.
+        #: 要注册函数，请使用 :meth:`context_processor` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.template_context_processors: dict[
             ft.AppOrBlueprintKey, list[ft.TemplateContextProcessorCallable]
         ] = defaultdict(list, {None: [_default_template_ctx_processor]})
 
-        #: A data structure of functions to call to modify the keyword
-        #: arguments passed to the view function, in the format
-        #: ``{scope: [functions]}``. The ``scope`` key is the name of a
-        #: blueprint the functions are active for, or ``None`` for all
-        #: requests.
+        #: 调用函数的数据结构来修改传递给视图函数的关键字参数，格式为
+        #: ``{scope: [functions]}`` 。 ``scope`` 键是函数处于活动状态的蓝图的名称，或
+        #: ``None`` 键是所有请求的名称。
         #:
-        #: To register a function, use the
-        #: :meth:`url_value_preprocessor` decorator.
+        #: 要注册函数，请使用 :meth:`url_value_preprocessor` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.url_value_preprocessors: dict[
             ft.AppOrBlueprintKey,
             list[ft.URLValuePreprocessorCallable],
         ] = defaultdict(list)
 
-        #: A data structure of functions to call to modify the keyword
-        #: arguments when generating URLs, in the format
-        #: ``{scope: [functions]}``. The ``scope`` key is the name of a
-        #: blueprint the functions are active for, or ``None`` for all
-        #: requests.
+        #: 生成 URL 时调用以修改关键字参数的函数的数据结构，格式为
+        #: ``{scope: [functions]}`` 。 ``scope`` 键是函数处于活动状态的蓝图的名称，或
+        #: ``None`` 键是所有请求的名称。
         #:
-        #: To register a function, use the :meth:`url_defaults`
-        #: decorator.
+        #: 要注册函数，请使用 :meth:`url_defaults` 装饰器。
         #:
-        #: This data structure is internal. It should not be modified
-        #: directly and its format may change at any time.
+        #: 该数据结构是内部的。不应直接修改它，其格式可能随时更改。
         self.url_default_functions: dict[
             ft.AppOrBlueprintKey, list[ft.URLDefaultCallable]
         ] = defaultdict(list)
@@ -222,9 +187,7 @@ class Scaffold:
 
     @property
     def static_folder(self) -> str | None:
-        """The absolute path to the configured static folder. ``None``
-        if no static folder is set.
-        """
+        """配置的静态文件夹的绝对路径。如果未设置静态文件夹，则为 ``None`` 。"""
         if self._static_folder is not None:
             return os.path.join(self.root_path, self._static_folder)
         else:
@@ -239,7 +202,7 @@ class Scaffold:
 
     @property
     def has_static_folder(self) -> bool:
-        """``True`` if :attr:`static_folder` is set.
+        """如果设置了 :attr:`static_folder` ，则为 ``True`` 。
 
         .. versionadded:: 0.5
         """
@@ -247,10 +210,9 @@ class Scaffold:
 
     @property
     def static_url_path(self) -> str | None:
-        """The URL prefix that the static route will be accessible from.
+        """可访问静态路由的 URL 前缀。
 
-        If it was not configured during init, it is derived from
-        :attr:`static_folder`.
+        如果在 init 期间未配置，则派生自 :attr:`static_folder` 。
         """
         if self._static_url_path is not None:
             return self._static_url_path
@@ -270,9 +232,9 @@ class Scaffold:
 
     @cached_property
     def jinja_loader(self) -> BaseLoader | None:
-        """The Jinja loader for this object's templates. By default this
-        is a class :class:`jinja2.loaders.FileSystemLoader` to
-        :attr:`template_folder` if it is set.
+        """该对象模板的 Jinja 加载器。默认情况下，这是一个类
+        :class:`jinja2.loaders.FileSystemLoader` 到 :attr:`template_folder` （如果已设置
+        ）。
 
         .. versionadded:: 0.5
         """
@@ -294,7 +256,7 @@ class Scaffold:
 
     @setupmethod
     def get(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Shortcut for :meth:`route` with ``methods=["GET"]``.
+        """:meth:`route` 和 ``methods=["GET"]`` 的快捷方式。
 
         .. versionadded:: 2.0
         """
@@ -302,7 +264,7 @@ class Scaffold:
 
     @setupmethod
     def query(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Shortcut for :meth:`route` with ``methods=["QUERY"]``.
+        """:meth:`route` 和 ``methods=["QUERY"]`` 的快捷方式。
 
         .. versionadded:: 3.2
         """
@@ -310,7 +272,7 @@ class Scaffold:
 
     @setupmethod
     def post(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Shortcut for :meth:`route` with ``methods=["POST"]``.
+        """:meth:`route` 和 ``methods=["POST"]`` 的快捷方式。
 
         .. versionadded:: 2.0
         """
@@ -318,7 +280,7 @@ class Scaffold:
 
     @setupmethod
     def put(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Shortcut for :meth:`route` with ``methods=["PUT"]``.
+        """:meth:`route` 和 ``methods=["PUT"]`` 的快捷方式。
 
         .. versionadded:: 2.0
         """
@@ -326,7 +288,7 @@ class Scaffold:
 
     @setupmethod
     def delete(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Shortcut for :meth:`route` with ``methods=["DELETE"]``.
+        """:meth:`route` 和 ``methods=["DELETE"]`` 的快捷方式。
 
         .. versionadded:: 2.0
         """
@@ -334,7 +296,7 @@ class Scaffold:
 
     @setupmethod
     def patch(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Shortcut for :meth:`route` with ``methods=["PATCH"]``.
+        """:meth:`route` 和 ``methods=["PATCH"]`` 的快捷方式。
 
         .. versionadded:: 2.0
         """
@@ -342,9 +304,8 @@ class Scaffold:
 
     @setupmethod
     def route(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
-        """Decorate a view function to register it with the given URL
-        rule and options. Calls :meth:`add_url_rule`, which has more
-        details about the implementation.
+        """装饰视图函数以使用给定的 URL 规则和选项注册它。调用 :meth:`add_url_rule` ，其
+        中包含有关实现的更多详细信息。
 
         .. code-block:: python
 
@@ -352,17 +313,14 @@ class Scaffold:
             def index():
                 return "Hello, World!"
 
-        See :ref:`url-route-registrations`.
+        请参阅 :ref:`url-route-registrations` 。
 
-        The endpoint name for the route defaults to the name of the view
-        function if the ``endpoint`` parameter isn't passed.
+        如果未传递 ``endpoint`` 参数，则路由的端点名称默认为视图函数的名称。
 
-        The ``methods`` parameter defaults to ``["GET"]``. ``HEAD`` and
-        ``OPTIONS`` are added automatically.
+        ``methods`` 参数默认为 ``["GET"]`` 。 ``HEAD`` 和 ``OPTIONS`` 会自动添加。
 
-        :param rule: The URL rule string.
-        :param options: Extra options passed to the
-            :class:`~werkzeug.routing.Rule` object.
+        :param rule: URL 规则字符串。
+        :param options: 传递给 :class:`~werkzeug.routing.Rule` 对象的额外选项。
         """
 
         def decorator(f: T_route) -> T_route:
@@ -381,9 +339,8 @@ class Scaffold:
         provide_automatic_options: bool | None = None,
         **options: t.Any,
     ) -> None:
-        """Register a rule for routing incoming requests and building
-        URLs. The :meth:`route` decorator is a shortcut to call this
-        with the ``view_func`` argument. These are equivalent:
+        """注册用于路由传入请求和构建 URL 的规则。 :meth:`route` 装饰器是使用
+        ``view_func`` 参数调用它的快捷方式。这些是等效的：
 
         .. code-block:: python
 
@@ -398,21 +355,16 @@ class Scaffold:
 
             app.add_url_rule("/", view_func=index)
 
-        See :ref:`url-route-registrations`.
+        请参阅 :ref:`url-route-registrations` 。
 
-        The endpoint name for the route defaults to the name of the view
-        function if the ``endpoint`` parameter isn't passed. An error
-        will be raised if a function has already been registered for the
-        endpoint.
+        如果未传递 ``endpoint`` 参数，则路由的端点名称默认为视图函数的名称。如果已为端点
+        注册了函数，则会引发错误。
 
-        The ``methods`` parameter defaults to ``["GET"]``. ``HEAD`` is
-        always added automatically, and ``OPTIONS`` is added
-        automatically by default.
+        ``methods`` 参数默认为 ``["GET"]`` 。 ``HEAD`` 始终自动添加，而 ``OPTIONS`` 默认
+        情况下自动添加。
 
-        ``view_func`` does not necessarily need to be passed, but if the
-        rule should participate in routing an endpoint name must be
-        associated with a view function at some point with the
-        :meth:`endpoint` decorator.
+        ``view_func`` 不一定需要传递，但如果规则应该参与路由，则端点名称必须在某个时刻通
+        过 :meth:`endpoint` 装饰器与视图函数关联。
 
         .. code-block:: python
 
@@ -422,29 +374,24 @@ class Scaffold:
             def index():
                 ...
 
-        If ``view_func`` has a ``required_methods`` attribute, those
-        methods are added to the passed and automatic methods. If it
-        has a ``provide_automatic_methods`` attribute, it is used as the
-        default if the parameter is not passed.
+        如果 ``view_func`` 具有 ``required_methods`` 属性，则这些方法将添加到传递方法和
+        自动方法中。如果它具有 ``provide_automatic_methods`` 属性，则在未传递参数时将其
+        用作默认值。
 
-        :param rule: The URL rule string.
-        :param endpoint: The endpoint name to associate with the rule
-            and view function. Used when routing and building URLs.
-            Defaults to ``view_func.__name__``.
-        :param view_func: The view function to associate with the
-            endpoint name.
-        :param provide_automatic_options: Add the ``OPTIONS`` method and
-            respond to ``OPTIONS`` requests automatically.
-        :param options: Extra options passed to the
-            :class:`~werkzeug.routing.Rule` object.
+        :param rule: URL 规则字符串。
+        :param endpoint: 与规则和查看功能关联的端点名称。在路由和构建 URL 时使用。默认为
+            ``view_func.__name__`` 。
+        :param view_func: 与端点名称关联的视图函数。
+        :param provide_automatic_options: 添加 ``OPTIONS`` 方法并自动响应 ``OPTIONS`` 请
+            求。
+        :param options: 传递给 :class:`~werkzeug.routing.Rule` 对象的额外选项。
         """
         raise NotImplementedError
 
     @setupmethod
     def endpoint(self, endpoint: str) -> t.Callable[[F], F]:
-        """Decorate a view function to register it for the given
-        endpoint. Used if a rule is added without a ``view_func`` with
-        :meth:`add_url_rule`.
+        """装饰一个视图函数以将其注册到给定端点。如果添加的规则没有 ``view_func`` 和
+        :meth:`add_url_rule` ，则使用。
 
         .. code-block:: python
 
@@ -454,8 +401,7 @@ class Scaffold:
             def example():
                 ...
 
-        :param endpoint: The endpoint name to associate with the view
-            function.
+        :param endpoint: 与视图函数关联的端点名称。
         """
 
         def decorator(f: F) -> F:
@@ -466,10 +412,9 @@ class Scaffold:
 
     @setupmethod
     def before_request(self, f: T_before_request) -> T_before_request:
-        """Register a function to run before each request.
+        """注册一个函数以在每个请求之前运行。
 
-        For example, this can be used to open a database connection, or
-        to load the logged in user from the session.
+        例如，这可用于打开数据库连接，或从会话加载登录用户。
 
         .. code-block:: python
 
@@ -478,70 +423,57 @@ class Scaffold:
                 if "user_id" in session:
                     g.user = db.session.get(session["user_id"])
 
-        The function will be called without any arguments. If it returns
-        a non-``None`` value, the value is handled as if it was the
-        return value from the view, and further request handling is
-        stopped.
+        该函数将在没有任何参数的情况下被调用。如果它返回非 ``None`` 值，则将该值视为视图
+        的返回值，并停止进一步的请求处理。
 
-        This is available on both app and blueprint objects. When used on an app, this
-        executes before every request. When used on a blueprint, this executes before
-        every request that the blueprint handles. To register with a blueprint and
-        execute before every request, use :meth:`.Blueprint.before_app_request`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，它会在每个请求之前执行。当
+        在蓝图上使用时，它在蓝图处理的每个请求之前执行。要注册蓝图并在每个请求之前执行，
+        请使用 :meth:`.Blueprint.before_app_request` 。
         """
         self.before_request_funcs.setdefault(None, []).append(f)
         return f
 
     @setupmethod
     def after_request(self, f: T_after_request) -> T_after_request:
-        """Register a function to run after each request to this object.
+        """注册一个函数，在每次请求该对象后运行。
 
-        The function is called with the response object, and must return
-        a response object. This allows the functions to modify or
-        replace the response before it is sent.
+        该函数使用响应对象调用，并且必须返回响应对象。这允许函数在发送之前修改或替换响应
+        。
 
-        If a function raises an exception, any remaining
-        ``after_request`` functions will not be called. Therefore, this
-        should not be used for actions that must execute, such as to
-        close resources. Use :meth:`teardown_request` for that.
+        如果函数引发异常，则不会调用任何剩余的 ``after_request`` 函数。因此，这不应该用
+        于必须执行的操作，例如关闭资源。为此使用 :meth:`teardown_request` 。
 
-        This is available on both app and blueprint objects. When used on an app, this
-        executes after every request. When used on a blueprint, this executes after
-        every request that the blueprint handles. To register with a blueprint and
-        execute after every request, use :meth:`.Blueprint.after_app_request`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，它会在每个请求后执行。当在
+        蓝图上使用时，它会在蓝图处理的每个请求之后执行。要注册蓝图并在每个请求后执行，请
+        使用 :meth:`.Blueprint.after_app_request` 。
         """
         self.after_request_funcs.setdefault(None, []).append(f)
         return f
 
     @setupmethod
     def teardown_request(self, f: T_teardown) -> T_teardown:
-        """Register a function to be called when the request context is
-        popped. Typically, this happens at the end of each request, but
-        contexts may be pushed manually during testing.
+        """注册一个在弹出请求上下文时要调用的函数。通常，这发生在每个请求结束时，但可以
+        在测试期间手动推送上下文。
 
         .. code-block:: python
 
             with app.test_request_context():
                 ...
 
-        When the ``with`` block exits (or ``ctx.pop()`` is called), the
-        teardown functions are called just before the request context is
-        made inactive.
+        当 ``with`` 块退出（或调用 ``ctx.pop()`` ）时，将在请求上下文变为非活动状态之前
+        调用清理函数。
 
-        When a teardown function was called because of an unhandled
-        exception it will be passed an error object. If an
-        :meth:`errorhandler` is registered, it will handle the exception
-        and the teardown will not receive it.
+        当由于未处理的异常而调用清理函数时，它将传递一个错误对象。如果注册了
+        :meth:`errorhandler` ，它将处理异常，而清理将不会收到它。
 
-        Teardown functions must avoid raising exceptions. If they
-        execute code that might fail they must surround that code with a
-        ``try``/``except`` block and log any errors.
+        清理函数必须避免引发异常。如果它们执行可能失败的代码，则必须用 ``try`` /
+        ``except`` 块包围该代码并记录所有错误。
 
-        The return values of teardown functions are ignored.
+        清理函数的返回值将被忽略。
 
-        This is available on both app and blueprint objects. When used on an app, this
-        executes after every request. When used on a blueprint, this executes after
-        every request that the blueprint handles. To register with a blueprint and
-        execute after every request, use :meth:`.Blueprint.teardown_app_request`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，它会在每个请求后执行。当在
+        蓝图上使用时，它会在蓝图处理的每个请求之后执行。要注册蓝图并在每个请求后执行，请
+        使用 :meth:`.Blueprint.teardown_app_request` 。
         """
         self.teardown_request_funcs.setdefault(None, []).append(f)
         return f
@@ -551,14 +483,12 @@ class Scaffold:
         self,
         f: T_template_context_processor,
     ) -> T_template_context_processor:
-        """Registers a template context processor function. These functions run before
-        rendering a template. The keys of the returned dict are added as variables
-        available in the template.
+        """注册模板上下文处理器函数。这些函数在渲染模板之前运行。返回的字典的键被添加为
+        模板中可用的变量。
 
-        This is available on both app and blueprint objects. When used on an app, this
-        is called for every rendered template. When used on a blueprint, this is called
-        for templates rendered from the blueprint's views. To register with a blueprint
-        and affect every template, use :meth:`.Blueprint.app_context_processor`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，每个渲染的模板都会调用它。
+        当在蓝图上使用时，会为从蓝图视图渲染的模板调用此方法。要注册蓝图并影响每个模板，
+        请使用 :meth:`.Blueprint.app_context_processor` 。
         """
         self.template_context_processors[None].append(f)
         return f
@@ -568,36 +498,29 @@ class Scaffold:
         self,
         f: T_url_value_preprocessor,
     ) -> T_url_value_preprocessor:
-        """Register a URL value preprocessor function for all view
-        functions in the application. These functions will be called before the
-        :meth:`before_request` functions.
+        """为应用程序中的所有视图函数注册一个 URL 值预处理器函数。这些函数将在
+        :meth:`before_request` 函数之前调用。
 
-        The function can modify the values captured from the matched url before
-        they are passed to the view. For example, this can be used to pop a
-        common language code value and place it in ``g`` rather than pass it to
-        every view.
+        该函数可以在将匹配的 url 捕获的值传递到视图之前对其进行修改。例如，这可用于弹出
+        公共语言代码值并将其放置在 ``g`` 中，而不是将其传递到每个视图。
 
-        The function is passed the endpoint name and values dict. The return
-        value is ignored.
+        该函数传递端点名称和值字典。返回值被忽略。
 
-        This is available on both app and blueprint objects. When used on an app, this
-        is called for every request. When used on a blueprint, this is called for
-        requests that the blueprint handles. To register with a blueprint and affect
-        every request, use :meth:`.Blueprint.app_url_value_preprocessor`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，每个请求都会调用它。当在蓝
+        图上使用时，将针对蓝图处理的请求调用此方法。要注册蓝图并影响每个请求，请使用
+        :meth:`.Blueprint.app_url_value_preprocessor` 。
         """
         self.url_value_preprocessors[None].append(f)
         return f
 
     @setupmethod
     def url_defaults(self, f: T_url_defaults) -> T_url_defaults:
-        """Callback function for URL defaults for all view functions of the
-        application.  It's called with the endpoint and values and should
-        update the values passed in place.
+        """URL 的回调函数默认用于应用程序的所有视图函数。  它是用端点和值调用的，并且应
+        该更新就地传递的值。
 
-        This is available on both app and blueprint objects. When used on an app, this
-        is called for every request. When used on a blueprint, this is called for
-        requests that the blueprint handles. To register with a blueprint and affect
-        every request, use :meth:`.Blueprint.app_url_defaults`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，每个请求都会调用它。当在蓝
+        图上使用时，将针对蓝图处理的请求调用此方法。要注册蓝图并影响每个请求，请使用
+        :meth:`.Blueprint.app_url_defaults` 。
         """
         self.url_default_functions[None].append(f)
         return f
@@ -606,38 +529,33 @@ class Scaffold:
     def errorhandler(
         self, code_or_exception: type[Exception] | int
     ) -> t.Callable[[T_error_handler], T_error_handler]:
-        """Register a function to handle errors by code or exception class.
+        """注册一个函数来通过代码或异常类处理错误。
 
-        A decorator that is used to register a function given an
-        error code.  Example::
+        用于注册给定错误代码的函数的装饰器。  示例::
 
             @app.errorhandler(404)
             def page_not_found(error):
                 return 'This page does not exist', 404
 
-        You can also register handlers for arbitrary exceptions::
+        您还可以注册任意异常的处理程序::
 
             @app.errorhandler(DatabaseError)
             def special_exception_handler(error):
                 return 'Database connection failed', 500
 
-        This is available on both app and blueprint objects. When used on an app, this
-        can handle errors from every request. When used on a blueprint, this can handle
-        errors from requests that the blueprint handles. To register with a blueprint
-        and affect every request, use :meth:`.Blueprint.app_errorhandler`.
+        这在应用程序和蓝图对象上都可用。当在应用程序上使用时，它可以处理每个请求的错误。
+        当在蓝图上使用时，这可以处理蓝图处理的请求中的错误。要注册蓝图并影响每个请求，请
+        使用 :meth:`.Blueprint.app_errorhandler` 。
 
         .. versionadded:: 0.7
-            Use :meth:`register_error_handler` instead of modifying
-            :attr:`error_handler_spec` directly, for application wide error
-            handlers.
+            对于应用程序范围的错误处理程序，使用 :meth:`register_error_handler` 而不是直
+            接修改 :attr:`error_handler_spec` 。
 
         .. versionadded:: 0.7
-           One can now additionally also register custom exception types
-           that do not necessarily have to be a subclass of the
-           :class:`~werkzeug.exceptions.HTTPException` class.
+           现在还可以另外注册自定义异常类型，这些异常类型不一定必须是
+           :class:`~werkzeug.exceptions.HTTPException` 类的子类。
 
-        :param code_or_exception: the code as integer for the handler, or
-                                  an arbitrary exception
+        :param code_or_exception: 代码作为处理程序的整数，或任意异常
         """
 
         def decorator(f: T_error_handler) -> T_error_handler:
@@ -652,9 +570,7 @@ class Scaffold:
         code_or_exception: type[Exception] | int,
         f: ft.ErrorHandlerCallable,
     ) -> None:
-        """Alternative error attach function to the :meth:`errorhandler`
-        decorator that is more straightforward to use for non decorator
-        usage.
+        """替代错误将函数附加到 :meth:`errorhandler` 装饰器，对于非装饰器使用更直接。
 
         .. versionadded:: 0.7
         """
@@ -665,12 +581,10 @@ class Scaffold:
     def _get_exc_class_and_code(
         exc_class_or_code: type[Exception] | int,
     ) -> tuple[type[Exception], int | None]:
-        """Get the exception class being handled. For HTTP status codes
-        or ``HTTPException`` subclasses, return both the exception and
-        status code.
+        """获取正在处理的异常类。对于 HTTP 状态代码或 ``HTTPException`` 子类，返回异常和
+        状态代码。
 
-        :param exc_class_or_code: Any exception class, or an HTTP status
-            code as an integer.
+        :param exc_class_or_code: 任何异常类，或整数形式的 HTTP 状态代码。
         """
         exc_class: type[Exception]
 
@@ -707,15 +621,13 @@ class Scaffold:
 
 
 def _endpoint_from_view_func(view_func: ft.RouteCallable) -> str:
-    """Internal helper that returns the default endpoint for a given
-    function.  This always is the function name.
-    """
+    """返回给定函数的默认端点的内部助手。  这始终是函数名称。"""
     assert view_func is not None, "expected view func if endpoint is not provided."
     return view_func.__name__
 
 
 def _find_package_path(import_name: str) -> str:
-    """Find the path that contains the package or module."""
+    """查找包含包或模块的路径。"""
     root_mod_name, _, _ = import_name.partition(".")
 
     try:
@@ -724,20 +636,17 @@ def _find_package_path(import_name: str) -> str:
         if root_spec is None:
             raise ValueError("not found")
     except (ImportError, ValueError):
-        # ImportError: the machinery told us it does not exist
-        # ValueError:
-        #    - the module name was invalid
-        #    - the module name is __main__
-        #    - we raised `ValueError` due to `root_spec` being `None`
+        # ImportError: 机器告诉我们它不存在 ValueError: - 模块名称无效 - 模块名称是
+        # __main__ - 我们提出 `ValueError` 因为 `root_spec` 是 `None`
         return os.getcwd()
 
     if root_spec.submodule_search_locations:
         if root_spec.origin is None or root_spec.origin == "namespace":
-            # namespace package
+            # 命名空间包
             package_spec = importlib.util.find_spec(import_name)
 
             if package_spec is not None and package_spec.submodule_search_locations:
-                # Pick the path in the namespace that contains the submodule.
+                # 选择包含子模块的命名空间中的路径。
                 package_path = pathlib.Path(
                     os.path.commonpath(package_spec.submodule_search_locations)
                 )
@@ -747,54 +656,50 @@ def _find_package_path(import_name: str) -> str:
                     if package_path.is_relative_to(location)
                 )
             else:
-                # Pick the first path.
+                # 选择第一条路径。
                 search_location = root_spec.submodule_search_locations[0]
 
             return os.path.dirname(search_location)
         else:
-            # package with __init__.py
+            # 带有 __init__.py 的包
             return os.path.dirname(os.path.dirname(root_spec.origin))
     else:
-        # module
+        # 模块
         return os.path.dirname(root_spec.origin)  # type: ignore[type-var, return-value]
 
 
 def find_package(import_name: str) -> tuple[str | None, str]:
-    """Find the prefix that a package is installed under, and the path
-    that it would be imported from.
+    """查找安装包的前缀以及导入包的路径。
 
-    The prefix is the directory containing the standard directory
-    hierarchy (lib, bin, etc.). If the package is not installed to the
-    system (:attr:`sys.prefix`) or a virtualenv (``site-packages``),
-    ``None`` is returned.
+    前缀是包含标准目录层次结构（lib、bin 等）的目录。如果软件包未安装到系统 (
+    :attr:`sys.prefix` ) 或 virtualenv ( ``site-packages`` )，则返回 ``None`` 。
 
-    The path is the entry in :attr:`sys.path` that contains the package
-    for import. If the package is not installed, it's assumed that the
-    package was imported from the current working directory.
+    该路径是 :attr:`sys.path` 中包含要导入的包的条目。如果未安装该包，则假定该包是从当前
+    工作目录导入的。
     """
     package_path = _find_package_path(import_name)
     py_prefix = os.path.abspath(sys.prefix)
 
-    # installed to the system
+    # 安装到系统中
     if pathlib.PurePath(package_path).is_relative_to(py_prefix):
         return py_prefix, package_path
 
     site_parent, site_folder = os.path.split(package_path)
 
-    # installed to a virtualenv
+    # 安装到 virtualenv
     if site_folder.lower() == "site-packages":
         parent, folder = os.path.split(site_parent)
 
-        # Windows (prefix/lib/site-packages)
+        # Windows（前缀/lib/site-packages）
         if folder.lower() == "lib":
             return parent, package_path
 
-        # Unix (prefix/lib/pythonX.Y/site-packages)
+        # Unix（前缀/lib/pythonX.Y/site-packages）
         if os.path.basename(parent).lower() == "lib":
             return os.path.dirname(parent), package_path
 
-        # something else (prefix/site-packages)
+        # 其他东西（前缀/站点包）
         return site_parent, package_path
 
-    # not installed
+    # 未安装
     return None, package_path

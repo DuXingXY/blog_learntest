@@ -2,14 +2,14 @@ import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
 
-# Project --------------------------------------------------------------
+# 项目 -----------------------------------------------------------------
 
 project = "Flask"
 copyright = "2010 Pallets"
 author = "Pallets"
 release, version = get_version("Flask")
 
-# General --------------------------------------------------------------
+# 通用配置 -------------------------------------------------------------
 
 default_role = "code"
 extensions = [
@@ -39,7 +39,7 @@ intersphinx_mapping = {
     "blinker": ("https://blinker.readthedocs.io/", None),
 }
 
-# HTML -----------------------------------------------------------------
+# HTML 输出 ------------------------------------------------------------
 
 html_theme = "flask"
 html_theme_options = {"index_sidebar_logo": False}
@@ -66,7 +66,7 @@ html_show_sourcelink = False
 gettext_uuid = True
 gettext_compact = False
 
-# Local Extensions -----------------------------------------------------
+# 本地扩展 -------------------------------------------------------------
 
 
 def github_link(name, rawtext, text, lineno, inliner, options=None, content=None):

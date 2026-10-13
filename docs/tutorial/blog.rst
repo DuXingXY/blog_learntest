@@ -39,7 +39,7 @@ new code at the end of the factory function before returning the app.
 
     def create_app():
         app = ...
-        # existing code omitted
+        # 现有代码被省略
 
         from . import blog
         app.register_blueprint(blog.bp)

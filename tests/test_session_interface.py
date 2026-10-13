@@ -4,9 +4,8 @@ from flask.sessions import SessionInterface
 
 
 def test_open_session_with_endpoint():
-    """If request.endpoint (or other URL matching behavior) is needed
-    while loading the session, RequestContext.match_request() can be
-    called manually.
+    """如果加载会话时需要 request.endpoint （或其他 URL 匹配行为），则可以手动调用
+    RequestContext.match_request() 。
     """
 
     class MySessionInterface(SessionInterface):

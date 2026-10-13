@@ -42,30 +42,25 @@ class Blueprint(SansioBlueprint):
             cli_group,
         )
 
-        #: The Click command group for registering CLI commands for this
-        #: object. The commands are available from the ``flask`` command
-        #: once the application has been discovered and blueprints have
-        #: been registered.
+        #: 用于为此对象注册 CLI 命令的 Click 命令组。一旦发现应用程序并注册了蓝图，就可
+        #: 以通过 ``flask`` 命令使用这些命令。
         self.cli = AppGroup()
 
-        # Set the name of the Click group in case someone wants to add
-        # the app's commands to another CLI tool.
+        # 设置 Click 组的名称，以防有人想要将应用程序的命令添加到另一个 CLI 工具。
         self.cli.name = self.name
 
     def get_send_file_max_age(self, filename: str | None) -> int | None:
-        """Used by :func:`send_file` to determine the ``max_age`` cache
-        value for a given file path if it wasn't passed.
+        """如果未传递给定文件路径，则由 :func:`send_file` 使用来确定 ``max_age`` 缓存值
+        。
 
-        By default, this returns :data:`SEND_FILE_MAX_AGE_DEFAULT` from
-        the configuration of :data:`~flask.current_app`. This defaults
-        to ``None``, which tells the browser to use conditional requests
-        instead of a timed cache, which is usually preferable.
+        默认情况下，这会从 :data:`~flask.current_app` 的配置中返回
+        :data:`SEND_FILE_MAX_AGE_DEFAULT` 。默认为 ``None`` ，它告诉浏览器使用条件请求而
+        不是定时缓存，这通常是更好的选择。
 
-        Note this is a duplicate of the same method in the Flask
-        class.
+        请注意，这是 Flask 类中相同方法的重复。
 
         .. versionchanged:: 2.0
-            The default configuration is ``None`` instead of 12 hours.
+            默认配置是 ``None`` 而不是 12 小时。
 
         .. versionadded:: 0.9
         """
@@ -80,13 +75,11 @@ class Blueprint(SansioBlueprint):
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
-        """The view function used to serve files from
-        :attr:`static_folder`. A route is automatically registered for
-        this view at :attr:`static_url_path` if :attr:`static_folder` is
-        set.
+        """用于提供来自 :attr:`static_folder` 的文件的视图函数。如果设置了
+        :attr:`static_folder` ，则会在 :attr:`static_url_path` 处自动为此视图注册一条路
+        由。
 
-        Note this is a duplicate of the same method in the Flask
-        class.
+        请注意，这是 Flask 类中相同方法的重复。
 
         .. versionadded:: 0.5
 
@@ -94,8 +87,8 @@ class Blueprint(SansioBlueprint):
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
-        # send_file only knows to call get_send_file_max_age on the app,
-        # call it here so it works for blueprints too.
+        # send_file 只知道在应用程序上调用 get_send_file_max_age ，在此处调用它，因此它
+        # 也适用于蓝图。
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
@@ -104,18 +97,17 @@ class Blueprint(SansioBlueprint):
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
     ) -> t.IO[t.AnyStr]:
-        """Open a resource file relative to :attr:`root_path` for reading. The
-        blueprint-relative equivalent of the app's :meth:`~.Flask.open_resource`
-        method.
+        """打开相对于 :attr:`root_path` 的资源文件进行读取。应用程序的
+        :meth:`~.Flask.open_resource` 方法的蓝图相关等效项。
 
-        :param resource: Path to the resource relative to :attr:`root_path`.
-        :param mode: Open the file in this mode. Only reading is supported,
-            valid values are ``"r"`` (or ``"rt"``) and ``"rb"``.
-        :param encoding: Open the file with this encoding when opening in text
-            mode. This is ignored when opening in binary mode.
+        :param resource: 相对于 :attr:`root_path` 的资源路径。
+        :param mode: 在此模式下打开文件。仅支持读取，有效值为 ``"r"`` （或 ``"rt"`` ）和
+            ``"rb"`` 。
+        :param encoding: 以文本模式打开时使用此编码打开文件。以二进制模式打开时会忽略这
+            一点。
 
         .. versionchanged:: 3.1
-            Added the ``encoding`` parameter.
+            添加了 ``encoding`` 参数。
         """
         if mode not in {"r", "rt", "rb"}:
             raise ValueError("Resources can only be opened for reading.")

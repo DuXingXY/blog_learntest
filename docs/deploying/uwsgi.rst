@@ -31,7 +31,7 @@ Create a virtualenv, install your application, then install ``pyuwsgi``.
     $ cd hello-app
     $ python -m venv .venv
     $ . .venv/bin/activate
-    $ pip install .  # install your application
+    $ pip install .  # 安装您的应用程序
     $ pip install pyuwsgi
 
 If you have a compiler available, you can install the ``uwsgi`` package
@@ -42,7 +42,7 @@ Either method will include SSL support.
 
     $ pip install uwsgi
 
-    # or
+    # 或
     $ pip install --no-binary pyuwsgi pyuwsgi
 
 

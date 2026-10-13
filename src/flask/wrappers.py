@@ -16,40 +16,31 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 
 class Request(RequestBase):
-    """The request object used by default in Flask.  Remembers the
-    matched endpoint and view arguments.
+    """Flask 中默认使用的请求对象。  记住匹配的端点和视图参数。
 
-    It is what ends up as :class:`~flask.request`.  If you want to replace
-    the request object used you can subclass this and set
-    :attr:`~flask.Flask.request_class` to your subclass.
+    这就是最终的 :class:`~flask.request` 。  如果您想替换所使用的请求对象，您可以对其进
+    行子类化并将 :attr:`~flask.Flask.request_class` 设置为您的子类。
 
-    The request object is a :class:`~werkzeug.wrappers.Request` subclass and
-    provides all of the attributes Werkzeug defines plus a few Flask
-    specific ones.
+    请求对象是 :class:`~werkzeug.wrappers.Request` 子类，提供 Werkzeug 定义的所有属性以
+    及一些 Flask 特定属性。
     """
 
     json_module: t.Any = json
 
-    #: The internal URL rule that matched the request.  This can be
-    #: useful to inspect which methods are allowed for the URL from
-    #: a before/after handler (``request.url_rule.methods``) etc.
-    #: Though if the request's method was invalid for the URL rule,
-    #: the valid list is available in ``routing_exception.valid_methods``
-    #: instead (an attribute of the Werkzeug exception
-    #: :exc:`~werkzeug.exceptions.MethodNotAllowed`)
-    #: because the request was never internally bound.
+    #: 与请求匹配的内部 URL 规则。  这对于检查前/后处理程序 (
+    #: ``request.url_rule.methods`` ) 等中允许 URL 使用哪些方法很有用。尽管如果请求的方
+    #: 法对于 URL 规则无效，则有效列表可在 ``routing_exception.valid_methods`` 中使用（
+    #: Werkzeug 异常 :exc:`~werkzeug.exceptions.MethodNotAllowed` 的属性），因为请求从未
+    #: 在内部绑定。
     #:
     #: .. versionadded:: 0.6
     url_rule: Rule | None = None
 
-    #: A dict of view arguments that matched the request.  If an exception
-    #: happened when matching, this will be ``None``.
+    #: 与请求匹配的视图参数的字典。  如果匹配时发生异常，则为 ``None`` 。
     view_args: dict[str, t.Any] | None = None
 
-    #: If matching the URL failed, this is the exception that will be
-    #: raised / was raised as part of the request handling.  This is
-    #: usually a :exc:`~werkzeug.exceptions.NotFound` exception or
-    #: something similar.
+    #: 如果匹配 URL 失败，则这是将在请求处理过程中引发的异常。  这通常是
+    #: :exc:`~werkzeug.exceptions.NotFound` 异常或类似的异常。
     routing_exception: HTTPException | None = None
 
     _max_content_length: int | None = None
@@ -58,24 +49,21 @@ class Request(RequestBase):
 
     @property
     def max_content_length(self) -> int | None:
-        """The maximum number of bytes that will be read during this request. If
-        this limit is exceeded, a 413 :exc:`~werkzeug.exceptions.RequestEntityTooLarge`
-        error is raised. If it is set to ``None``, no limit is enforced at the
-        Flask application level. However, if it is ``None`` and the request has
-        no ``Content-Length`` header and the WSGI server does not indicate that
-        it terminates the stream, then no data is read to avoid an infinite
-        stream.
+        """在此请求期间将读取的最大字节数。如果超出此限制，则会引发 413
+        :exc:`~werkzeug.exceptions.RequestEntityTooLarge` 错误。如果设置为 ``None`` ，则
+        在 Flask 应用程序级别不强制实施限制。但是，如果它是 ``None`` 并且请求没有
+        ``Content-Length`` 标头，并且 WSGI 服务器没有指示它终止流，则不会读取任何数据以
+        避免无限流。
 
-        Each request defaults to the :data:`MAX_CONTENT_LENGTH` config, which
-        defaults to ``None``. It can be set on a specific ``request`` to apply
-        the limit to that specific view. This should be set appropriately based
-        on an application's or view's specific needs.
+        每个请求默认为 :data:`MAX_CONTENT_LENGTH` 配置，默认为 ``None`` 。可以在特定的
+        ``request`` 上设置它以将限制应用于该特定视图。应根据应用程序或视图的特定需求适当
+        设置。
 
         .. versionchanged:: 3.1
-            This can be set per-request.
+            这可以根据请求进行设置。
 
         .. versionchanged:: 0.6
-            This is configurable through Flask config.
+            这可以通过 Flask 配置进行配置。
         """
         if self._max_content_length is not None:
             return self._max_content_length
@@ -91,18 +79,17 @@ class Request(RequestBase):
 
     @property
     def max_form_memory_size(self) -> int | None:
-        """The maximum size in bytes any non-file form field may be in a
-        ``multipart/form-data`` body. If this limit is exceeded, a 413
-        :exc:`~werkzeug.exceptions.RequestEntityTooLarge` error is raised. If it
-        is set to ``None``, no limit is enforced at the Flask application level.
+        """任何非文件表单字段可以位于 ``multipart/form-data`` 主体中的最大大小（以字节为
+        单位）。如果超出此限制，则会引发 413
+        :exc:`~werkzeug.exceptions.RequestEntityTooLarge` 错误。如果设置为 ``None`` ，则
+        在 Flask 应用程序级别不强制实施限制。
 
-        Each request defaults to the :data:`MAX_FORM_MEMORY_SIZE` config, which
-        defaults to ``500_000``. It can be set on a specific ``request`` to
-        apply the limit to that specific view. This should be set appropriately
-        based on an application's or view's specific needs.
+        每个请求默认为 :data:`MAX_FORM_MEMORY_SIZE` 配置，默认为 ``500_000`` 。可以在特
+        定的 ``request`` 上设置它以将限制应用于该特定视图。应根据应用程序或视图的特定需
+        求适当设置。
 
         .. versionchanged:: 3.1
-            This is configurable through Flask config.
+            这可以通过 Flask 配置进行配置。
         """
         if self._max_form_memory_size is not None:
             return self._max_form_memory_size
@@ -118,18 +105,16 @@ class Request(RequestBase):
 
     @property  # type: ignore[override]
     def max_form_parts(self) -> int | None:
-        """The maximum number of fields that may be present in a
-        ``multipart/form-data`` body. If this limit is exceeded, a 413
-        :exc:`~werkzeug.exceptions.RequestEntityTooLarge` error is raised. If it
-        is set to ``None``, no limit is enforced at the Flask application level.
+        """``multipart/form-data`` 主体中可以存在的最大字段数。如果超出此限制，则会引发
+        413 :exc:`~werkzeug.exceptions.RequestEntityTooLarge` 错误。如果设置为 ``None``
+        ，则在 Flask 应用程序级别不强制实施限制。
 
-        Each request defaults to the :data:`MAX_FORM_PARTS` config, which
-        defaults to ``1_000``. It can be set on a specific ``request`` to apply
-        the limit to that specific view. This should be set appropriately based
-        on an application's or view's specific needs.
+        每个请求默认为 :data:`MAX_FORM_PARTS` 配置，默认为 ``1_000`` 。可以在特定的
+        ``request`` 上设置它以将限制应用于该特定视图。应根据应用程序或视图的特定需求适当
+        设置。
 
         .. versionchanged:: 3.1
-            This is configurable through Flask config.
+            这可以通过 Flask 配置进行配置。
         """
         if self._max_form_parts is not None:
             return self._max_form_parts
@@ -145,13 +130,11 @@ class Request(RequestBase):
 
     @property
     def endpoint(self) -> str | None:
-        """The endpoint that matched the request URL.
+        """与请求 URL 匹配的端点。
 
-        This will be ``None`` if matching failed or has not been
-        performed yet.
+        如果匹配失败或尚未执行，这将是 ``None`` 。
 
-        This in combination with :attr:`view_args` can be used to
-        reconstruct the same URL or a modified URL.
+        这与 :attr:`view_args` 结合可用于重建相同的 URL 或修改后的 URL。
         """
         if self.url_rule is not None:
             return self.url_rule.endpoint  # type: ignore[no-any-return]
@@ -160,15 +143,11 @@ class Request(RequestBase):
 
     @property
     def blueprint(self) -> str | None:
-        """The registered name of the current blueprint.
+        """当前蓝图的注册名称。
 
-        This will be ``None`` if the endpoint is not part of a
-        blueprint, or if URL matching failed or has not been performed
-        yet.
+        如果端点不是蓝图的一部分，或者 URL 匹配失败或尚未执行，则这将为 ``None`` 。
 
-        This does not necessarily match the name the blueprint was
-        created with. It may have been nested, or registered with a
-        different name.
+        这不一定与创建蓝图时使用的名称匹配。它可能已嵌套，或使用不同的名称注册。
         """
         endpoint = self.endpoint
 
@@ -179,11 +158,9 @@ class Request(RequestBase):
 
     @property
     def blueprints(self) -> list[str]:
-        """The registered names of the current blueprint upwards through
-        parent blueprints.
+        """当前蓝图向上到父蓝图的注册名称。
 
-        This will be an empty list if there is no current blueprint, or
-        if URL matching failed.
+        如果没有当前蓝图，或者 URL 匹配失败，这将是一个空列表。
 
         .. versionadded:: 2.0.1
         """
@@ -197,8 +174,8 @@ class Request(RequestBase):
     def _load_form_data(self) -> None:
         super()._load_form_data()
 
-        # In debug mode we're replacing the files multidict with an ad-hoc
-        # subclass that raises a different error for key errors.
+        # 在调试模式下，我们将文件 multidict 替换为一个临时子类，该子类会针对关键错误引
+        # 发不同的错误。
         if (
             current_app
             and current_app.debug
@@ -220,21 +197,20 @@ class Request(RequestBase):
 
 
 class Response(ResponseBase):
-    """The response object that is used by default in Flask.  Works like the
-    response object from Werkzeug but is set to have an HTML mimetype by
-    default.  Quite often you don't have to create this object yourself because
-    :meth:`~flask.Flask.make_response` will take care of that for you.
+    """Flask 中默认使用的响应对象。  与 Werkzeug 的响应对象类似，但默认设置为具有 HTML
+    mimetype。  很多时候你不必自己创建这个对象，因为 :meth:`~flask.Flask.make_response`
+    会为你处理这个事情。
 
-    If you want to replace the response object used you can subclass this and
-    set :attr:`~flask.Flask.response_class` to your subclass.
-
-    .. versionchanged:: 1.0
-        JSON support is added to the response, like the request. This is useful
-        when testing to get the test client response data as JSON.
+    如果您想替换所使用的响应对象，您可以对其进行子类化并将
+    :attr:`~flask.Flask.response_class` 设置为您的子类。
 
     .. versionchanged:: 1.0
+        与请求一样，将 JSON 支持添加到响应中。当测试以 JSON 形式获取测试客户端响应数据时
+        ，这非常有用。
 
-        Added :attr:`max_cookie_size`.
+    .. versionchanged:: 1.0
+
+        添加了 :attr:`max_cookie_size` 。
     """
 
     default_mimetype: str | None = "text/html"
@@ -245,13 +221,12 @@ class Response(ResponseBase):
 
     @property
     def max_cookie_size(self) -> int:  # type: ignore
-        """Read-only view of the :data:`MAX_COOKIE_SIZE` config key.
+        """:data:`MAX_COOKIE_SIZE` 配置键的只读视图。
 
-        See :attr:`~werkzeug.wrappers.Response.max_cookie_size` in
-        Werkzeug's docs.
+        请参阅 Werkzeug 文档中的 :attr:`~werkzeug.wrappers.Response.max_cookie_size` 。
         """
         if current_app:
             return current_app.config["MAX_COOKIE_SIZE"]  # type: ignore[no-any-return]
 
-        # return Werkzeug's default when not in an app context
+        # 当不在应用程序上下文中时返回 Werkzeug 的默认值
         return super().max_cookie_size

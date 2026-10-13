@@ -26,19 +26,18 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 
 def get_debug_flag() -> bool:
-    """Get whether debug mode should be enabled for the app, indicated by the
-    :envvar:`FLASK_DEBUG` environment variable. The default is ``False``.
+    """获取是否应为应用程序启用调试模式，由 :envvar:`FLASK_DEBUG` 环境变量指示。默认为
+    ``False`` 。
     """
     val = os.environ.get("FLASK_DEBUG")
     return bool(val and val.lower() not in {"0", "false", "no"})
 
 
 def get_load_dotenv(default: bool = True) -> bool:
-    """Get whether the user has disabled loading default dotenv files by
-    setting :envvar:`FLASK_SKIP_DOTENV`. The default is ``True``, load
-    the files.
+    """通过设置 :envvar:`FLASK_SKIP_DOTENV` 获取用户是否禁用加载默认 dotenv 文件。默认为
+    ``True`` ，加载文件。
 
-    :param default: What to return if the env var isn't set.
+    :param default: 如果未设置环境变量，则返回什么。
     """
     val = os.environ.get("FLASK_SKIP_DOTENV")
 
@@ -63,24 +62,18 @@ def stream_with_context(
 def stream_with_context(
     generator_or_function: t.Iterator[t.AnyStr] | t.Callable[..., t.Iterator[t.AnyStr]],
 ) -> t.Iterator[t.AnyStr] | t.Callable[[t.Iterator[t.AnyStr]], t.Iterator[t.AnyStr]]:
-    """Wrap a response generator function so that it runs inside the current
-    request context. This keeps :data:`.request`, :data:`.session`, and :data:`.g`
-    available, even though at the point the generator runs the request context
-    will typically have ended.
+    """包装响应生成器函数，使其在当前请求上下文中运行。这使得 :data:`.request` 、
+    :data:`.session` 和 :data:`.g` 保持可用，即使在生成器运行时请求上下文通常已经结束。
 
     .. warning::
 
-        Due to the following caveat, it is often safer to pass the data you
-        need as arguments to the generator, rather than relying on the context
-        objects.
+        由于以下警告，将所需的数据作为参数传递给生成器通常比依赖上下文对象更安全。
 
-    More headers cannot be sent after the body has begun. Therefore, you must
-    make sure all headers are set before starting the response. In particular,
-    if the generator will access ``session``, be sure to do so in the view as
-    well so that the ``Vary: cookie`` header will be set. Do not modify the
-    session in the generator, as the ``Set-Cookie`` header will already be sent.
+    正文开始后无法发送更多标头。因此，您必须确保在开始响应之前设置所有标头。特别是，如果
+    生成器将访问 ``session`` ，请确保也在视图中执行此操作，以便设置 ``Vary: cookie`` 标
+    头。不要修改生成器中的会话，因为 ``Set-Cookie`` 标头已经被发送。
 
-    Use it as a decorator on a generator function:
+    将其用作生成器函数的装饰器：
 
     .. code-block:: python
 
@@ -96,7 +89,7 @@ def stream_with_context(
 
             return Response(generate())
 
-    Or use it as a wrapper around a created generator:
+    或者将其用作创建的生成器的包装器：
 
     .. code-block:: python
 
@@ -136,57 +129,50 @@ def stream_with_context(
             try:
                 yield from gen
             finally:
-                # Clean up in case the user wrapped a WSGI iterator.
+                # 清理以防用户包装 WSGI 迭代器。
                 if hasattr(gen, "close"):
                     gen.close()
 
-    # Execute the generator to the sentinel value. This captures the current
-    # context and pushes it to preserve it. Further iteration will yield from
-    # the original iterator.
+    # 将生成器执行到哨兵值。这会捕获当前上下文并推送它以保留它。进一步的迭代将从原始迭代
+    # 器中产生。
     wrapped_g = generator()
     next(wrapped_g)
     return wrapped_g
 
 
 def make_response(*args: t.Any) -> Response:
-    """Sometimes it is necessary to set additional headers in a view.  Because
-    views do not have to return response objects but can return a value that
-    is converted into a response object by Flask itself, it becomes tricky to
-    add headers to it.  This function can be called instead of using a return
-    and you will get a response object which you can use to attach headers.
+    """有时需要在视图中设置额外的标题。  因为视图不必返回响应对象，但可以返回由 Flask 本
+    身转换为响应对象的值，因此向其添加标头变得很棘手。  可以调用此函数而不是使用返回，您
+    将获得一个可用于附加标头的响应对象。
 
-    If view looked like this and you want to add a new header::
+    如果视图看起来像这样并且您想添加新标题::
 
         def index():
             return render_template('index.html', foo=42)
 
-    You can now do something like this::
+    你现在可以做这样的事情::
 
         def index():
             response = make_response(render_template('index.html', foo=42))
             response.headers['X-Parachutes'] = 'parachutes are cool'
             return response
 
-    This function accepts the very same arguments you can return from a
-    view function.  This for example creates a response with a 404 error
-    code::
+    该函数接受与从视图函数返回的参数完全相同的参数。  例如，这会创建一个带有 404 错误代
+    码的响应::
 
         response = make_response(render_template('not_found.html'), 404)
 
-    The other use case of this function is to force the return value of a
-    view function into a response which is helpful with view
-    decorators::
+    该函数的另一个用例是强制将视图函数的返回值转换为响应，这对视图装饰器很有帮助::
 
         response = make_response(view_function())
         response.headers['X-Parachutes'] = 'parachutes are cool'
 
-    Internally this function does the following things:
+    该函数在内部执行以下操作：
 
-    -   if no arguments are passed, it creates a new response argument
-    -   if one argument is passed, :meth:`flask.Flask.make_response`
-        is invoked with it.
-    -   if more than one argument is passed, the arguments are passed
-        to the :meth:`flask.Flask.make_response` function as tuple.
+    -   如果没有传递参数，它将创建一个新的响应参数
+    -   如果传递一个参数，则用它调用 :meth:`flask.Flask.make_response` 。
+    -   如果传递多个参数，这些参数将作为元组传递给 :meth:`flask.Flask.make_response` 函
+        数。
 
     .. versionadded:: 0.6
     """
@@ -206,40 +192,32 @@ def url_for(
     _external: bool | None = None,
     **values: t.Any,
 ) -> str:
-    """Generate a URL to the given endpoint with the given values.
+    """使用给定值生成给定端点的 URL 。
 
-    This requires an active request or application context, and calls
-    :meth:`current_app.url_for() <flask.Flask.url_for>`. See that method
-    for full documentation.
+    这需要一个活动请求或应用程序上下文，并调用
+    :meth:`current_app.url_for() <flask.Flask.url_for>` 。请参阅该方法以获取完整文档。
 
-    :param endpoint: The endpoint name associated with the URL to
-        generate. If this starts with a ``.``, the current blueprint
-        name (if any) will be used.
-    :param _anchor: If given, append this as ``#anchor`` to the URL.
-    :param _method: If given, generate the URL associated with this
-        method for the endpoint.
-    :param _scheme: If given, the URL will have this scheme if it is
-        external.
-    :param _external: If given, prefer the URL to be internal (False) or
-        require it to be external (True). External URLs include the
-        scheme and domain. When not in an active request, URLs are
-        external by default.
-    :param values: Values to use for the variable parts of the URL rule.
-        Unknown keys are appended as query string arguments, like
-        ``?a=b&c=d``.
+    :param endpoint: 与要生成的 URL 关联的端点名称。如果以 ``.`` 开头，则将使用当前的蓝
+        图名称（如果有）。
+    :param _anchor: 如果给出，请将其作为 ``#anchor`` 附加到 URL 中。
+    :param _method: 如果给定，则为端点生成与此方法关联的 URL。
+    :param _scheme: 如果给定，URL 将具有此方案（如果它是外部的）。
+    :param _external: 如果给定，则首选 URL 为内部 (False) 或要求它为外部 (True)。外部
+        URL 包括方案和域。当不在活动请求中时，URL 默认是外部的。
+    :param values: 用于 URL 规则的变量部分的值。未知键作为查询字符串参数附加，例如
+        ``?a=b&c=d`` 。
 
     .. versionchanged:: 2.2
-        Calls ``current_app.url_for``, allowing an app to override the
-        behavior.
+        调用 ``current_app.url_for`` ，允许应用程序覆盖该行为。
 
     .. versionchanged:: 0.10
-       The ``_scheme`` parameter was added.
+       添加了 ``_scheme`` 参数。
 
     .. versionchanged:: 0.9
-       The ``_anchor`` and ``_method`` parameters were added.
+       添加了 ``_anchor`` 和 ``_method`` 参数。
 
     .. versionchanged:: 0.9
-       Calls ``app.handle_url_build_error`` on build errors.
+       在构建错误时调用 ``app.handle_url_build_error`` 。
     """
     return current_app.url_for(
         endpoint,
@@ -254,23 +232,22 @@ def url_for(
 def redirect(
     location: str, code: int = 303, Response: type[BaseResponse] | None = None
 ) -> BaseResponse:
-    """Create a redirect response object.
+    """创建重定向响应对象。
 
-    If :data:`~flask.current_app` is available, it will use its
-    :meth:`~flask.Flask.redirect` method, otherwise it will use
-    :func:`werkzeug.utils.redirect`.
+    如果 :data:`~flask.current_app` 可用，它将使用其 :meth:`~flask.Flask.redirect` 方法
+    ，否则将使用 :func:`werkzeug.utils.redirect` 。
 
-    :param location: The URL to redirect to.
-    :param code: The status code for the redirect.
-    :param Response: The response class to use. Not used when
-        ``current_app`` is active, which uses ``app.response_class``.
+    :param location: 要重定向到的 URL。
+    :param code: 重定向的状态代码。
+    :param Response: 要使用的响应类。当 ``current_app`` 处于活动状态时不使用，它使用
+        ``app.response_class`` 。
 
     .. versionchanged:: 3.2
-        ``code`` defaults to ``303`` instead of ``302``.
+        ``code`` 默认为 ``303`` 而不是 ``302`` 。
 
     .. versionadded:: 2.2
-        Calls ``current_app.redirect`` if available instead of always
-        using Werkzeug's default ``redirect``.
+        如果可用，则调用 ``current_app.redirect`` ，而不是始终使用 Werkzeug 的默认
+        ``redirect`` 。
     """
     if (ctx := _cv_app.get(None)) is not None:
         return ctx.app.redirect(location, code=code)
@@ -279,21 +256,18 @@ def redirect(
 
 
 def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn:
-    """Raise an :exc:`~werkzeug.exceptions.HTTPException` for the given
-    status code.
+    """针对给定的状态代码引发 :exc:`~werkzeug.exceptions.HTTPException` 。
 
-    If :data:`~flask.current_app` is available, it will call its
-    :attr:`~flask.Flask.aborter` object, otherwise it will use
-    :func:`werkzeug.exceptions.abort`.
+    如果 :data:`~flask.current_app` 可用，它将调用其 :attr:`~flask.Flask.aborter` 对象，
+    否则将使用 :func:`werkzeug.exceptions.abort` 。
 
-    :param code: The status code for the exception, which must be
-        registered in ``app.aborter``.
-    :param args: Passed to the exception.
-    :param kwargs: Passed to the exception.
+    :param code: 异常的状态码，必须注册在 ``app.aborter`` 中。
+    :param args: 传递给异常。
+    :param kwargs: 传递给异常。
 
     .. versionadded:: 2.2
-        Calls ``current_app.aborter`` if available instead of always
-        using Werkzeug's default ``abort``.
+        如果可用，则调用 ``current_app.aborter`` ，而不是始终使用 Werkzeug 的默认
+        ``abort`` 。
     """
     if (ctx := _cv_app.get(None)) is not None:
         ctx.app.aborter(code, *args, **kwargs)
@@ -302,49 +276,44 @@ def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn
 
 
 def get_template_attribute(template_name: str, attribute: str) -> t.Any:
-    """Loads a macro (or variable) a template exports.  This can be used to
-    invoke a macro from within Python code.  If you for example have a
-    template named :file:`_cider.html` with the following contents:
+    """加载模板导出的宏（或变量），以便在 Python 代码中调用宏。例如，名为
+    :file:`_cider.html` 的模板包含以下内容：
 
     .. sourcecode:: html+jinja
 
        {% macro hello(name) %}Hello {{ name }}!{% endmacro %}
 
-    You can access this from Python code like this::
+    您可以从 Python 代码访问它，如下所示::
 
         hello = get_template_attribute('_cider.html', 'hello')
         return hello('World')
 
     .. versionadded:: 0.2
 
-    :param template_name: the name of the template
-    :param attribute: the name of the variable of macro to access
+    :param template_name: 模板的名称
+    :param attribute: 要访问的宏变量的名称
     """
     return getattr(current_app.jinja_env.get_template(template_name).module, attribute)
 
 
 def flash(message: str, category: str = "message") -> None:
-    """Flashes a message to the next request.  In order to remove the
-    flashed message from the session and to display it to the user,
-    the template has to call :func:`get_flashed_messages`.
+    """将消息存入会话，供下一个请求显示。模板必须调用 :func:`get_flashed_messages` ，才
+    能从会话中取出消息并显示给用户。
 
     .. versionchanged:: 0.3
-       `category` parameter added.
+       添加了 `category` 参数。
 
-    :param message: the message to be flashed.
-    :param category: the category for the message.  The following values
-                     are recommended: ``'message'`` for any kind of message,
-                     ``'error'`` for errors, ``'info'`` for information
-                     messages and ``'warning'`` for warnings.  However any
-                     kind of string can be used as category.
+    :param message: 要显示的提示消息。
+    :param category: 消息的类别。  建议使用以下值： ``'message'`` 用于任何类型的消息，
+        ``'error'`` 用于错误， ``'info'`` 用于信息消息， ``'warning'`` 用于警告。  然而
+        任何类型的字符串都可以用作类别。
     """
-    # Original implementation:
+    # 原来的实现：
     #
-    #     session.setdefault('_flashes', []).append((category, message))
+    # session.setdefault('_flashes', []).append((类别, 消息))
     #
-    # This assumed that changes made to mutable structures in the session are
-    # always in sync with the session object, which is not true for session
-    # implementations that use external storage for keeping their keys/values.
+    # 这假设对会话中的可变结构所做的更改始终与会话对象同步，但对于使用外部存储来保存其键
+    # /值的会话实现来说，情况并非如此。
     flashes = session.get("_flashes", [])
     flashes.append((category, message))
     session["_flashes"] = flashes
@@ -360,33 +329,27 @@ def flash(message: str, category: str = "message") -> None:
 def get_flashed_messages(
     with_categories: bool = False, category_filter: t.Iterable[str] = ()
 ) -> list[str] | list[tuple[str, str]]:
-    """Pulls all flashed messages from the session and returns them.
-    Further calls in the same request to the function will return
-    the same messages.  By default just the messages are returned,
-    but when `with_categories` is set to ``True``, the return value will
-    be a list of tuples in the form ``(category, message)`` instead.
+    """从会话中提取所有闪现消息并返回它们。对函数的同一请求中的进一步调用将返回相同的消
+    息。  默认情况下只返回消息，但是当 `with_categories` 设置为 ``True`` 时，返回值将是
+    ``(category, message)`` 形式的元组列表。
 
-    Filter the flashed messages to one or more categories by providing those
-    categories in `category_filter`.  This allows rendering categories in
-    separate html blocks.  The `with_categories` and `category_filter`
-    arguments are distinct:
+    通过在 `category_filter` 中提供这些类别，将闪现的消息过滤到一个或多个类别。  这允许
+    在单独的 html 块中呈现类别。  `with_categories` 和 `category_filter` 参数是不同的：
 
-    * `with_categories` controls whether categories are returned with message
-      text (``True`` gives a tuple, where ``False`` gives just the message text).
-    * `category_filter` filters the messages down to only those matching the
-      provided categories.
+    * `with_categories` 控制类别是否与消息文本一起返回（ ``True`` 给出一个元组，其中
+      ``False`` 仅给出消息文本）。
+    * `category_filter` 将消息过滤为仅匹配所提供类别的消息。
 
-    See :doc:`/patterns/flashing` for examples.
+    有关示例，请参阅 :doc:`/patterns/flashing` 。
 
     .. versionchanged:: 0.3
-       `with_categories` parameter added.
+       添加了 `with_categories` 参数。
 
     .. versionchanged:: 0.9
-        `category_filter` parameter added.
+        添加了 `category_filter` 参数。
 
-    :param with_categories: set to ``True`` to also receive categories.
-    :param category_filter: filter of categories to limit return values.  Only
-                            categories in the list will be returned.
+    :param with_categories: 设置为 ``True`` 也可以接收类别。
+    :param category_filter: 过滤类别以限制返回值。  仅返回列表中的类别。
     """
     flashes = app_ctx._flashes
     if flashes is None:
@@ -424,104 +387,81 @@ def send_file(
     last_modified: datetime | int | float | None = None,
     max_age: None | (int | t.Callable[[str | None], int | None]) = None,
 ) -> Response:
-    """Send the contents of a file to the client.
+    """将文件的内容发送给客户端。
 
-    The first argument can be a file path or a file-like object. Paths
-    are preferred in most cases because Werkzeug can manage the file and
-    get extra information from the path. Passing a file-like object
-    requires that the file is opened in binary mode, and is mostly
-    useful when building a file in memory with :class:`io.BytesIO`.
+    第一个参数可以是文件路径或类似文件的对象。在大多数情况下，路径是首选，因为 Werkzeug
+    可以管理文件并从路径获取额外信息。传递类似文件的对象需要以二进制模式打开文件，并且在
+    使用 :class:`io.BytesIO` 在内存中构建文件时最有用。
 
-    Never pass file paths provided by a user. The path is assumed to be
-    trusted, so a user could craft a path to access a file you didn't
-    intend. Use :func:`send_from_directory` to safely serve
-    user-requested paths from within a directory.
+    切勿传递用户提供的文件路径。该路径被假定为受信任的，因此用户可以创建一个路径来访问您
+    不希望访问的文件。使用 :func:`send_from_directory` 从目录中安全地提供用户请求的路径
+    。
 
-    If the WSGI server sets a ``file_wrapper`` in ``environ``, it is
-    used, otherwise Werkzeug's built-in wrapper is used. Alternatively,
-    if the HTTP server supports ``X-Sendfile``, configuring Flask with
-    ``USE_X_SENDFILE = True`` will tell the server to send the given
-    path, which is much more efficient than reading it in Python.
+    如果 WSGI 服务器在 ``environ`` 中设置了 ``file_wrapper`` ，则使用它，否则使用
+    Werkzeug 的内置包装器。或者，如果 HTTP 服务器支持 ``X-Sendfile`` ，则使用
+    ``USE_X_SENDFILE = True`` 配置 Flask 将告诉服务器发送给定路径，这比在 Python 中读取
+    它要高效得多。
 
-    :param path_or_file: The path to the file to send, relative to the
-        current working directory if a relative path is given.
-        Alternatively, a file-like object opened in binary mode; make
-        sure to call ``seek(0)`` if it was already read.
-    :param mimetype: The MIME type to send for the file. If not
-        provided, it will try to detect it from the file name.
-    :param as_attachment: Indicate to a browser that it should offer to
-        save the file instead of displaying it.
-    :param download_name: The default name browsers will use when saving
-        the file. Defaults to the passed file name.
-    :param conditional: Enable conditional and range responses based on
-        request headers. Requires passing a file path and ``environ``.
-    :param etag: Calculate an ETag for the file, which requires passing
-        a file path. Can also be a string to use instead.
-    :param last_modified: The last modified time to send for the file,
-        in seconds. If not provided, it will try to detect it from the
-        file path.
-    :param max_age: How long the client should cache the file, in
-        seconds. If set, ``Cache-Control`` will be ``public``, otherwise
-        it will be ``no-cache`` to prefer conditional caching.
+    :param path_or_file: 要发送的文件的路径，相对于当前工作目录（如果给出相对路径）。或
+        者，以二进制模式打开的类似文件的对象；如果已经读取，请确保调用 ``seek(0)`` 。
+    :param mimetype: 要发送的文件的 MIME 类型。如果未提供，它将尝试从文件名中检测它。
+    :param as_attachment: 指示浏览器应提供保存文件而不是显示文件的功能。
+    :param download_name: 保存文件时浏览器将使用的默认名称。默认为传递的文件名。
+    :param conditional: 根据请求标头启用条件和范围响应。需要传递文件路径和 ``environ``
+        。
+    :param etag: 计算文件的 ETag，这需要传递文件路径。也可以用字符串来代替。
+    :param last_modified: 发送文件的最后修改时间（以秒为单位）。如果未提供，它将尝试从文
+        件路径中检测它。
+    :param max_age: 客户端应缓存文件多长时间（以秒为单位）。如果设置， ``Cache-Control``
+        将是 ``public`` ，否则它将是 ``no-cache`` 以首选条件缓存。
 
     .. versionchanged:: 2.0
-        ``download_name`` replaces the ``attachment_filename``
-        parameter. If ``as_attachment=False``, it is passed with
-        ``Content-Disposition: inline`` instead.
+        ``download_name`` 替换 ``attachment_filename`` 参数。如果是
+        ``as_attachment=False`` ，则改为使用 ``Content-Disposition: inline`` 传递。
 
     .. versionchanged:: 2.0
-        ``max_age`` replaces the ``cache_timeout`` parameter.
-        ``conditional`` is enabled and ``max_age`` is not set by
-        default.
+        ``max_age`` 替换 ``cache_timeout`` 参数。默认情况下，启用 ``conditional`` ，未设
+        置 ``max_age`` 。
 
     .. versionchanged:: 2.0
-        ``etag`` replaces the ``add_etags`` parameter. It can be a
-        string to use instead of generating one.
+        ``etag`` 替换 ``add_etags`` 参数。它可以是一个字符串来使用而不是生成一个。
 
     .. versionchanged:: 2.0
-        Passing a file-like object that inherits from
-        :class:`~io.TextIOBase` will raise a :exc:`ValueError` rather
-        than sending an empty file.
+        传递继承自 :class:`~io.TextIOBase` 的类文件对象将引发 :exc:`ValueError` 而不是发
+        送空文件。
 
     .. versionadded:: 2.0
-        Moved the implementation to Werkzeug. This is now a wrapper to
-        pass some Flask-specific arguments.
+        将实现移至 Werkzeug。现在这是一个包装器，用于传递一些 Flask 特定的参数。
 
     .. versionchanged:: 1.1
-        ``filename`` may be a :class:`~os.PathLike` object.
+        ``filename`` 可能是 :class:`~os.PathLike` 对象。
 
     .. versionchanged:: 1.1
-        Passing a :class:`~io.BytesIO` object supports range requests.
+        传递 :class:`~io.BytesIO` 对象支持范围请求。
 
     .. versionchanged:: 1.0.3
-        Filenames are encoded with ASCII instead of Latin-1 for broader
-        compatibility with WSGI servers.
+        文件名使用 ASCII 而不是 Latin-1 进行编码，以便与 WSGI 服务器更广泛地兼容。
 
     .. versionchanged:: 1.0
-        UTF-8 filenames as specified in :rfc:`2231` are supported.
+        支持 :rfc:`2231` 中指定的 UTF-8 文件名。
 
     .. versionchanged:: 0.12
-        The filename is no longer automatically inferred from file
-        objects. If you want to use automatic MIME and etag support,
-        pass a filename via ``filename_or_fp`` or
-        ``attachment_filename``.
+        文件名不再自动从文件对象推断。如果您想使用自动 MIME 和 etag 支持，请通过
+        ``filename_or_fp`` 或 ``attachment_filename`` 传递文件名。
 
     .. versionchanged:: 0.12
-        ``attachment_filename`` is preferred over ``filename`` for MIME
-        detection.
+        对于 MIME 检测， ``attachment_filename`` 优于 ``filename`` 。
 
     .. versionchanged:: 0.9
-        ``cache_timeout`` defaults to
-        :meth:`Flask.get_send_file_max_age`.
+        ``cache_timeout`` 默认为 :meth:`Flask.get_send_file_max_age` 。
 
     .. versionchanged:: 0.7
-        MIME guessing and etag support for file-like objects was
-        removed because it was unreliable. Pass a filename if you are
-        able to, otherwise attach an etag yourself.
+        MIME 对类文件对象的猜测和 etag 支持已被删除，因为它不可靠。如果可以，请传递文件
+        名，否则请自行附加 etag。
 
     .. versionchanged:: 0.5
-        The ``add_etags``, ``cache_timeout`` and ``conditional``
-        parameters were added. The default behavior is to add etags.
+        添加了 ``add_etags`` 、 ``cache_timeout`` 和 ``conditional`` 参数。默认行为是添
+        加 etag。
 
     .. versionadded:: 0.2
     """
@@ -545,7 +485,7 @@ def send_from_directory(
     path: os.PathLike[str] | str,
     **kwargs: t.Any,
 ) -> Response:
-    """Send a file from within a directory using :func:`send_file`.
+    """使用 :func:`send_file` 从目录中发送文件。
 
     .. code-block:: python
 
@@ -555,27 +495,23 @@ def send_from_directory(
                 app.config['UPLOAD_FOLDER'], name, as_attachment=True
             )
 
-    This is a secure way to serve files from a folder, such as static
-    files or uploads. Uses :func:`~werkzeug.security.safe_join` to
-    ensure the path coming from the client is not maliciously crafted to
-    point outside the specified directory.
+    这是一种从文件夹提供文件（例如静态文件或上传）的安全方法。使用
+    :func:`~werkzeug.security.safe_join` 确保来自客户端的路径不会被恶意构造为指向指定目
+    录之外。
 
-    If the final path does not point to an existing regular file,
-    raises a 404 :exc:`~werkzeug.exceptions.NotFound` error.
+    如果最终路径不指向现有的常规文件，则会引发 404 :exc:`~werkzeug.exceptions.NotFound`
+    错误。
 
-    :param directory: The directory that ``path`` must be located under,
-        relative to the current application's root path. This *must not*
-        be a value provided by the client, otherwise it becomes insecure.
-    :param path: The path to the file to send, relative to
-        ``directory``.
-    :param kwargs: Arguments to pass to :func:`send_file`.
+    :param directory: ``path`` 必须位于相对于当前应用程序根路径的目录。这*不能*是客户端
+        提供的值，否则它会变得不安全。
+    :param path: 要发送的文件的路径，相对于 ``directory`` 。
+    :param kwargs: 要传递给 :func:`send_file` 的参数。
 
     .. versionchanged:: 2.0
-        ``path`` replaces the ``filename`` parameter.
+        ``path`` 替换 ``filename`` 参数。
 
     .. versionadded:: 2.0
-        Moved the implementation to Werkzeug. This is now a wrapper to
-        pass some Flask-specific arguments.
+        将实现移至 Werkzeug。现在这是一个包装器，用于传递一些 Flask 特定的参数。
 
     .. versionadded:: 0.5
     """
@@ -585,21 +521,19 @@ def send_from_directory(
 
 
 def get_root_path(import_name: str) -> str:
-    """Find the root path of a package, or the path that contains a
-    module. If it cannot be found, returns the current working
-    directory.
+    """查找包的根路径或包含模块的目录。如果无法找到，则返回当前工作目录。
 
-    Not to be confused with the value returned by :func:`find_package`.
+    不要与 :func:`find_package` 返回的值混淆。
 
-    :meta private:
+    ：元私有：
     """
-    # Module already imported and has a file attribute. Use that first.
+    # 模块已导入并具有文件属性。先用那个。
     mod = sys.modules.get(import_name)
 
     if mod is not None and hasattr(mod, "__file__") and mod.__file__ is not None:
         return os.path.dirname(os.path.abspath(mod.__file__))
 
-    # Next attempt: check the loader.
+    # 下一步尝试：检查装载机。
     try:
         spec = importlib.util.find_spec(import_name)
 
@@ -610,23 +544,21 @@ def get_root_path(import_name: str) -> str:
     else:
         loader = spec.loader
 
-    # Loader does not exist or we're referring to an unloaded main
-    # module or a main module without path (interactive sessions), go
-    # with the current working directory.
+    # 加载程序不存在，或者我们指的是已卸载的主模块或没有路径的主模块（交互式会话），请使
+    # 用当前工作目录。
     if loader is None:
         return os.getcwd()
 
     if hasattr(loader, "get_filename"):
         filepath = loader.get_filename(import_name)  # pyright: ignore
     else:
-        # Fall back to imports.
+        # 回归进口。
         __import__(import_name)
         mod = sys.modules[import_name]
         filepath = getattr(mod, "__file__", None)
 
-        # If we don't have a file path it might be because it is a
-        # namespace package. In this case pick the root path from the
-        # first module that is contained in the package.
+        # 如果我们没有文件路径，可能是因为它是命名空间包。在这种情况下，从包中包含的第一
+        # 个模块中选择根路径。
         if filepath is None:
             raise RuntimeError(
                 "No root path can be found for the provided module"
@@ -637,7 +569,7 @@ def get_root_path(import_name: str) -> str:
                 " provided."
             )
 
-    # filepath is import_name.py for a module, or __init__.py for a package.
+    # 对于模块，文件路径是 import_name.py；对于包，文件路径是 __init__.py。
     return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
 
 
@@ -652,9 +584,7 @@ def _split_blueprint_path(name: str) -> list[str]:
 
 
 class _CollectErrors:
-    """A context manager that records and silences an error raised within it.
-    Used to run all teardown functions, then raise any errors afterward.
-    """
+    """记录并消除其中引发的错误的上下文管理器。用于运行所有清理函数，然后引发任何错误。"""
 
     def __init__(self) -> None:
         self.errors: list[BaseException] = []
@@ -674,6 +604,6 @@ class _CollectErrors:
         return True
 
     def raise_any(self, message: str) -> None:
-        """Raise if any errors were collected."""
+        """如果收集到任何错误，则提出。"""
         if self.errors:
             raise BaseExceptionGroup(message, self.errors)

@@ -14,13 +14,12 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 @LocalProxy
 def wsgi_errors_stream() -> t.TextIO:
-    """Find the most appropriate error stream for the application. If a request
-    is active, log to ``wsgi.errors``, otherwise use ``sys.stderr``.
+    """找到最适合应用程序的错误流。如果请求处于活动状态，则记录到 ``wsgi.errors`` ，否则
+    使用 ``sys.stderr`` 。
 
-    If you configure your own :class:`logging.StreamHandler`, you may want to
-    use this for the stream. If you are using file or dict configuration and
-    can't import this directly, you can refer to it as
-    ``ext://flask.logging.wsgi_errors_stream``.
+    如果您配置自己的 :class:`logging.StreamHandler` ，您可能希望将其用于流。如果您使用文
+    件或字典配置并且无法直接导入它，您可以将其称为
+    ``ext://flask.logging.wsgi_errors_stream`` 。
     """
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
@@ -29,8 +28,8 @@ def wsgi_errors_stream() -> t.TextIO:
 
 
 def has_level_handler(logger: logging.Logger) -> bool:
-    """Check if there is a handler in the logging chain that will handle the
-    given logger's :meth:`effective level <~logging.Logger.getEffectiveLevel>`.
+    """检查日志记录链中是否有处理程序来处理给定记录器的
+    :meth:`effective level <~logging.Logger.getEffectiveLevel>` 。
     """
     level = logger.getEffectiveLevel()
     current = logger
@@ -47,8 +46,8 @@ def has_level_handler(logger: logging.Logger) -> bool:
     return False
 
 
-#: Log messages to :func:`~flask.logging.wsgi_errors_stream` with the format
-#: ``[%(asctime)s] %(levelname)s in %(module)s: %(message)s``.
+#: 将消息记录到 :func:`~flask.logging.wsgi_errors_stream` ，格式为
+#: ``[%(asctime)s] %(levelname)s in %(module)s: %(message)s`` 。
 default_handler = logging.StreamHandler(wsgi_errors_stream)  # type: ignore
 default_handler.setFormatter(
     logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
@@ -56,17 +55,15 @@ default_handler.setFormatter(
 
 
 def create_logger(app: App) -> logging.Logger:
-    """Get the Flask app's logger and configure it if needed.
+    """获取 Flask 应用程序的记录器并根据需要进行配置。
 
-    The logger name will be the same as
-    :attr:`app.import_name <flask.Flask.name>`.
+    记录器名称将与 :attr:`app.import_name <flask.Flask.name>` 相同。
 
-    When :attr:`~flask.Flask.debug` is enabled, set the logger level to
-    :data:`logging.DEBUG` if it is not set.
+    当启用 :attr:`~flask.Flask.debug` 时，如果未设置，则将记录器级别设置为
+    :data:`logging.DEBUG` 。
 
-    If there is no handler for the logger's effective level, add a
-    :class:`~logging.StreamHandler` for
-    :func:`~flask.logging.wsgi_errors_stream` with a basic format.
+    如果没有记录器有效级别的处理程序，请使用基本格式为
+    :func:`~flask.logging.wsgi_errors_stream` 添加 :class:`~logging.StreamHandler` 。
     """
     logger = logging.getLogger(app.name)
 

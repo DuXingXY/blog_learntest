@@ -23,17 +23,17 @@ def test_login_required(client, path):
 
 
 def test_author_required(app, client, auth):
-    # change the post author to another user
+    # 将帖子作者更改为其他用户
     with app.app_context():
         db = get_db()
         db.execute("UPDATE post SET author_id = 2 WHERE id = 1")
         db.commit()
 
     auth.login()
-    # current user can't modify other user's post
+    # 当前用户无法修改其他用户的帖子
     assert client.post("/1/update").status_code == 403
     assert client.post("/1/delete").status_code == 403
-    # current user doesn't see edit link
+    # 当前用户看不到编辑链接
     assert b'href="/1/update"' not in client.get("/").data
 
 

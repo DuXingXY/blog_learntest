@@ -8,10 +8,10 @@ For example, you may want to override how request parameters are handled to pres
     from flask import Flask, Request
     from werkzeug.datastructures import ImmutableOrderedMultiDict
     class MyRequest(Request):
-        """Request subclass to override request parameter storage"""
+        """Request 子类覆盖请求参数存储"""
         parameter_storage_class = ImmutableOrderedMultiDict
     class MyFlask(Flask):
-        """Flask subclass using the custom request class"""
+        """使用自定义请求类的 Flask 子类"""
         request_class = MyRequest
 
 This is the recommended approach for overriding or augmenting Flask's internal functionality.

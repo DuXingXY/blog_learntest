@@ -7,9 +7,8 @@ from flask import g
 
 
 def get_db():
-    """Connect to the application's configured database. The connection
-    is unique for each request and will be reused if this is called
-    again.
+    """连接到应用程序的配置数据库。该连接对于每个请求都是唯一的，如果再次调用，该连接将
+    被重用。
     """
     if "db" not in g:
         g.db = sqlite3.connect(
@@ -21,9 +20,7 @@ def get_db():
 
 
 def close_db(e=None):
-    """If this request connected to the database, close the
-    connection.
-    """
+    """如果此请求连接到数据库，则关闭连接。"""
     db = g.pop("db", None)
 
     if db is not None:
@@ -31,7 +28,7 @@ def close_db(e=None):
 
 
 def init_db():
-    """Clear existing data and create new tables."""
+    """清除现有数据并创建新表。"""
     db = get_db()
 
     with current_app.open_resource("schema.sql") as f:
@@ -40,7 +37,7 @@ def init_db():
 
 @click.command("init-db")
 def init_db_command():
-    """Clear existing data and create new tables."""
+    """清除现有数据并创建新表。"""
     init_db()
     click.echo("Initialized the database.")
 
@@ -49,8 +46,6 @@ sqlite3.register_converter("timestamp", lambda v: datetime.fromisoformat(v.decod
 
 
 def init_app(app):
-    """Register database functions with the Flask app. This is called by
-    the application factory.
-    """
+    """使用 Flask 应用程序注册数据库函数。这是由应用程序工厂调用的。"""
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

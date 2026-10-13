@@ -1,25 +1,21 @@
 <!--
-Before opening a PR, open a ticket describing the issue or feature the
-PR will address. An issue is not required for fixing typos in
-documentation, or other simple non-code changes.
+在打开 PR 之前，请打开一个票证来描述 PR 将解决的问题或功能。修复文档中的拼写错误或其他简
+单的非代码更改不需要问题。
 
-Replace this comment with a description of the change. Describe how it
-addresses the linked ticket.
+将此注释替换为更改的描述。描述它如何处理链接的工单。
 -->
 
 <!--
-Link to relevant issues or previous PRs, one per line. Use "fixes" to
-automatically close an issue.
+相关问题或之前 PR 的链接，每行一个。使用 "fixes" 自动关闭问题。
 
-fixes #<issue number>
+fixes #<问题编号>
 -->
 
 <!--
-Ensure each step in CONTRIBUTING.rst is complete, especially the following:
+确保 CONTRIBUTING.rst 中的每个步骤都已完成，尤其是以下步骤：
 
-- Add tests that demonstrate the correct behavior of the change. Tests
-  should fail without the change.
-- Add or update relevant docs, in the docs folder and in code.
-- Add an entry in CHANGES.rst summarizing the change and linking to the issue.
-- Add `.. versionchanged::` entries in any relevant code docs.
+- 添加测试来证明更改的正确行为。如果不进行更改，测试应该会失败。
+- 在文档文件夹和代码中添加或更新相关文档。
+- 在 CHANGES.rst 中添加一个条目，总结更改并链接到问题。
+- 在任何相关代码文档中添加 `.. versionchanged::` 条目。
 -->

@@ -2,7 +2,7 @@ from flaskr import create_app
 
 
 def test_config():
-    """Test create_app without passing test config."""
+    """测试 create_app 而不通过测试配置。"""
     assert not create_app().testing
     assert create_app({"TESTING": True}).testing
 

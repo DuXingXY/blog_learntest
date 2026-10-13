@@ -103,7 +103,7 @@ def test_jsonify_dicts(app, client):
 
 
 def test_jsonify_arrays(app, client):
-    """Test jsonify of lists and args unpacking."""
+    """测试列表和参数解包的 jsonify。"""
     a_list = [
         0,
         42,
@@ -143,10 +143,10 @@ def test_jsonify_datetime(app, client, value):
 
 
 class FixedOffset(datetime.tzinfo):
-    """Fixed offset in hours east from UTC.
+    """修复了从 UTC 以东数小时的偏移。
 
-    This is a slight adaptation of the ``FixedOffset`` example found in
-    https://docs.python.org/2.7/library/datetime.html.
+    这是对 https://docs.python.org/2.7/library/datetime.html. 中的 ``FixedOffset`` 示例
+    的轻微改编
     """
 
     def __init__(self, hours, name):
@@ -165,7 +165,7 @@ class FixedOffset(datetime.tzinfo):
 
 @pytest.mark.parametrize("tz", (("UTC", 0), ("PST", -8), ("KST", 9)))
 def test_jsonify_aware_datetimes(tz):
-    """Test if aware datetime.datetime objects are converted into GMT."""
+    """测试是否知道 datetime.datetime 对象被转换为 GMT。"""
     tzinfo = FixedOffset(hours=tz[1], name=tz[0])
     dt = datetime.datetime(2017, 1, 1, 12, 34, 56, tzinfo=tzinfo)
     gmt = FixedOffset(hours=0, name="GMT")
@@ -174,7 +174,7 @@ def test_jsonify_aware_datetimes(tz):
 
 
 def test_jsonify_uuid_types(app, client):
-    """Test jsonify with uuid.UUID types"""
+    """使用 uuid.UUID 类型测试 jsonify"""
 
     test_uuid = uuid.UUID(bytes=b"\xde\xad\xbe\xef" * 4)
     url = "/uuid_test"
@@ -208,8 +208,7 @@ def test_json_attr(app, client):
 
 
 def test_tojson_filter(app, req_ctx):
-    # The tojson filter is tested in Jinja, this confirms that it's
-    # using Flask's dumps.
+    # tojson 过滤器在 Jinja 中进行了测试，这确认它正在使用 Flask 的转储。
     rv = flask.render_template_string(
         "const data = {{ data|tojson }};",
         data={"name": "</script>", "time": datetime.datetime(2021, 2, 1, 7, 15)},
@@ -221,7 +220,7 @@ def test_tojson_filter(app, req_ctx):
 
 
 def test_json_customization(app, client):
-    class X:  # noqa: B903, for Python2 compatibility
+    class X:  # noqa: B903, 保持 Python 2 兼容性
         def __init__(self, val):
             self.val = val
 

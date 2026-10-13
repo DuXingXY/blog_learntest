@@ -41,7 +41,7 @@ directory should be treated as a package.
 
 
     def create_app(test_config=None):
-        # create and configure the app
+        # 创建并配置应用程序
         app = Flask(__name__, instance_relative_config=True)
         app.config.from_mapping(
             SECRET_KEY='dev',
@@ -49,16 +49,16 @@ directory should be treated as a package.
         )
 
         if test_config is None:
-            # load the instance config, if it exists, when not testing
+            # 不测试时加载实例配置（如果存在）
             app.config.from_pyfile('config.py', silent=True)
         else:
-            # load the test config if passed in
+            # 如果传入则加载测试配置
             app.config.from_mapping(test_config)
 
-        # ensure the instance folder exists
+        # 确保实例文件夹存在
         os.makedirs(app.instance_path, exist_ok=True)
 
-        # a simple page that says hello
+        # 一个简单的页面打招呼
         @app.route('/hello')
         def hello():
             return 'Hello, World!'

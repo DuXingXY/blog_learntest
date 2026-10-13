@@ -107,7 +107,7 @@ def test_app_tearing_down_with_handled_exception_by_app_handler(app, client):
     with app.app_context():
         client.get("/")
 
-    # teardown request context, and with block context
+    # 清理请求上下文，以及块上下文
     assert cleanup_stuff == [None, None]
 
 
@@ -130,23 +130,23 @@ def test_app_tearing_down_with_unhandled_exception(app, client):
     assert len(cleanup_stuff) == 2
     assert isinstance(cleanup_stuff[0], ValueError)
     assert str(cleanup_stuff[0]) == "dummy"
-    # exception propagated, seen by request context and with block context
+    # 异常传播，由请求上下文和块上下文看到
     assert cleanup_stuff[0] is cleanup_stuff[1]
 
 
 def test_app_ctx_globals_methods(app, app_ctx):
-    # get
+    # 得到
     assert flask.g.get("foo") is None
     assert flask.g.get("foo", "bar") == "bar"
     # __contains__
     assert "foo" not in flask.g
     flask.g.foo = "bar"
     assert "foo" in flask.g
-    # setdefault
+    # 设置默认值
     flask.g.setdefault("bar", "the cake is a lie")
     flask.g.setdefault("bar", "hello world")
     assert flask.g.bar == "the cake is a lie"
-    # pop
+    # 流行音乐
     assert flask.g.pop("bar") == "the cake is a lie"
     with pytest.raises(KeyError):
         flask.g.pop("bar")

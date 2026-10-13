@@ -75,7 +75,7 @@ def test_method_route_no_methods(app):
 def test_provide_automatic_options_attr_disable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """Automatic options can be disabled by the view func attribute."""
+    """自动选项可以通过 view func 属性禁用。"""
 
     def index():
         return "Hello World!"
@@ -89,9 +89,7 @@ def test_provide_automatic_options_attr_disable(
 def test_provide_automatic_options_attr_enable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """When default automatic options is disabled in config, it can still be
-    enabled by the view function attribute.
-    """
+    """当配置中禁用默认自动选项时，仍然可以通过视图功能属性启用它。"""
     app.config["PROVIDE_AUTOMATIC_OPTIONS"] = False
 
     def index():
@@ -106,7 +104,7 @@ def test_provide_automatic_options_attr_enable(
 def test_provide_automatic_options_arg_disable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """Automatic options can be disabled by the route argument."""
+    """自动选项可以通过路由参数禁用。"""
 
     @app.get("/", provide_automatic_options=False)
     def index():
@@ -119,7 +117,7 @@ def test_provide_automatic_options_arg_disable(
 def test_provide_automatic_options_method_disable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """Automatic options is ignored if the route handles options."""
+    """如果路由处理选项，则自动选项将被忽略。"""
 
     @app.route("/", methods=["OPTIONS"])
     def index():
@@ -144,7 +142,7 @@ def test_request_dispatching(app, client):
     assert sorted(rv.allow) == ["GET", "HEAD", "OPTIONS"]
     rv = client.head("/")
     assert rv.status_code == 200
-    assert not rv.data  # head truncates
+    assert not rv.data  # 头部截断
     assert client.post("/more").data == b"POST"
     assert client.get("/more").data == b"GET"
     rv = client.delete("/more")
@@ -172,8 +170,7 @@ def test_url_mapping(app, client):
     app.add_url_rule("/", "index", index)
     app.add_url_rule("/more", "more", more, methods=["GET", "POST"])
 
-    # Issue 1288: Test that automatic options are not added
-    #             when non-uppercase 'options' in methods
+    # 问题 1288：测试方法中的 'options' 非大写时是否不添加自动选项
     app.add_url_rule("/options", "options", options, methods=["options"])
 
     assert client.get("/").data == b"GET"
@@ -182,7 +179,7 @@ def test_url_mapping(app, client):
     assert sorted(rv.allow) == ["GET", "HEAD", "OPTIONS"]
     rv = client.head("/")
     assert rv.status_code == 200
-    assert not rv.data  # head truncates
+    assert not rv.data  # 头部截断
     assert client.post("/more").data == b"POST"
     assert client.get("/more").data == b"GET"
     rv = client.delete("/more")
@@ -334,7 +331,7 @@ def test_session_using_session_settings(app, client):
 
     rv = client.get("/", "http://www.example.com:8080/test/")
     cookie = rv.headers["set-cookie"].lower()
-    # or condition for Werkzeug < 2.3
+    # 或 Werkzeug < 2.3 的条件
     assert "domain=example.com" in cookie or "domain=.example.com" in cookie
     assert "path=/" in cookie
     assert "secure" in cookie
@@ -345,7 +342,7 @@ def test_session_using_session_settings(app, client):
     rv = client.get("/clear", "http://www.example.com:8080/test/")
     cookie = rv.headers["set-cookie"].lower()
     assert "session=;" in cookie
-    # or condition for Werkzeug < 2.3
+    # 或 Werkzeug < 2.3 的条件
     assert "domain=example.com" in cookie or "domain=.example.com" in cookie
     assert "path=/" in cookie
     assert "secure" in cookie
@@ -403,17 +400,17 @@ def test_session_secret_key_fallbacks(app, client) -> None:
     def get_session() -> dict[str, t.Any]:
         return dict(flask.session)
 
-    # Set session with initial secret key, and two valid expiring keys
+    # 使用初始密钥和两个有效的过期密钥设置会话
     app.secret_key, app.config["SECRET_KEY_FALLBACKS"] = (
         "0 key",
         ["-1 key", "-2 key"],
     )
     client.post()
     assert client.get().json == {"a": 1}
-    # Change secret key, session can't be loaded and appears empty
+    # 更改密钥，会话无法加载并显示为空
     app.secret_key = "? key"
     assert client.get().json == {}
-    # Rotate the valid keys, session can be loaded
+    # 轮换有效密钥，会话可以加载
     app.secret_key, app.config["SECRET_KEY_FALLBACKS"] = (
         "+1 key",
         ["0 key", "-1 key"],
@@ -584,7 +581,7 @@ def test_session_vary_cookie(app, client):
         rv = client.get(path)
 
         if header_value:
-            # The 'Vary' key should exist in the headers only once.
+            # 'Vary' 键只能在标头中存在一次。
             assert len(rv.headers.get_all("Vary")) == 1
             assert rv.headers["Vary"] == header_value
         else:
@@ -627,11 +624,10 @@ def test_flashes(app, req_ctx):
 
 
 def test_extended_flashing(app):
-    # Be sure app.testing=True below, else tests can fail silently.
+    # 确保下面的 app.testing=True ，否则测试可能会默默失败。
     #
-    # Specifically, if app.testing is not set to True, the AssertionErrors
-    # in the view functions will cause a 500 response to the test client
-    # instead of propagating exceptions.
+    # 具体来说，如果 app.testing 未设置为 True，则视图函数中的 AssertionErrors 将导致测
+    # 试客户端收到 500 响应，而不是传播异常。
 
     @app.route("/")
     def index():
@@ -688,7 +684,7 @@ def test_extended_flashing(app):
         assert messages[1] == Markup("<em>Testing</em>")
         return ""
 
-    # Create new test client on each test to clean flashed messages.
+    # 在每个测试中创建新的测试客户端以清理提示消息。
 
     client = app.test_client()
     client.get("/")
@@ -818,9 +814,8 @@ def test_teardown_request_handler_error(app, client):
     def teardown_request1(exc):
         assert type(exc) is ZeroDivisionError
         called.append(True)
-        # This raises a new error and blows away sys.exc_info(), so we can
-        # test that all teardown_requests get passed the same original
-        # exception.
+        # 这会引发一个新错误并消除 sys.exc_info()，因此我们可以测试所有
+        # teardown_requests 是否都传递了相同的原始异常。
         try:
             raise TypeError()
         except Exception:
@@ -830,9 +825,8 @@ def test_teardown_request_handler_error(app, client):
     def teardown_request2(exc):
         assert type(exc) is ZeroDivisionError
         called.append(True)
-        # This raises a new error and blows away sys.exc_info(), so we can
-        # test that all teardown_requests get passed the same original
-        # exception.
+        # 这会引发一个新错误并消除 sys.exc_info()，因此我们可以测试所有
+        # teardown_requests 是否都传递了相同的原始异常。
         try:
             raise TypeError()
         except Exception:
@@ -1371,11 +1365,11 @@ def test_url_generation(app, req_ctx):
 
 
 def test_build_error_handler(app):
-    # Test base case, a URL which results in a BuildError.
+    # 测试基本情况， URL 会导致 BuildError。
     with app.test_request_context():
         pytest.raises(BuildError, flask.url_for, "spam")
 
-    # Verify the error is re-raised if not the current exception.
+    # 如果不是当前异常，请验证是否重新引发错误。
     try:
         with app.test_request_context():
             flask.url_for("spam")
@@ -1386,9 +1380,9 @@ def test_build_error_handler(app):
     except RuntimeError:
         pytest.raises(BuildError, app.handle_url_build_error, error, "spam", {})
 
-    # Test a custom handler.
+    # 测试自定义处理程序。
     def handler(error, endpoint, values):
-        # Just a test.
+        # 只是一个测试。
         return "/test_handler/"
 
     app.url_build_error_handlers.append(handler)
@@ -1397,7 +1391,7 @@ def test_build_error_handler(app):
 
 
 def test_build_error_handler_reraise(app):
-    # Test a custom handler which reraises the BuildError
+    # 测试重新引发 BuildError 的自定义处理程序
     def handler_raises_build_error(error, endpoint, values):
         raise error
 
@@ -1498,15 +1492,13 @@ def test_static_route_with_host_matching():
     with app.test_request_context():
         rv = flask.url_for("static", filename="index.html", _external=True)
         assert rv == "http://example.com/static/index.html"
-    # Providing static_host without host_matching=True should error.
+    # 提供 static_host 而不提供 host_matching=True 应该会出错。
     with pytest.raises(AssertionError):
         flask.Flask(__name__, static_host="example.com")
-    # Providing host_matching=True with static_folder
-    # but without static_host should error.
+    # 提供 host_matching=True 和 static_folder 但没有 static_host 应该会出错。
     with pytest.raises(AssertionError):
         flask.Flask(__name__, host_matching=True)
-    # Providing host_matching=True without static_host
-    # but with static_folder=None should not error.
+    # 提供 host_matching=True 而不带 static_host 但带 static_folder=None 应该不会出错。
     flask.Flask(__name__, host_matching=True, static_folder=None)
 
 
@@ -1587,7 +1579,7 @@ def test_server_name_subdomain():
     app.config["SERVER_NAME"] = "dev.local:443"
     rv = client.get("/", "https://dev.local")
 
-    # Werkzeug 1.0 fixes matching https scheme with 443 port
+    # Werkzeug 1.0 修复了与 443 端口匹配的 https 方案
     if rv.status_code != 404:
         assert rv.data == b"default"
 
@@ -1633,7 +1625,7 @@ def test_werkzeug_passthrough_errors(
 ):
     rv = {}
 
-    # Mocks werkzeug.serving.run_simple method
+    # 模拟 werkzeug.serving.run_simple 方法
     def run_simple_mock(*args, **kwargs):
         rv["passthrough_errors"] = kwargs.get("passthrough_errors")
 
@@ -1726,11 +1718,11 @@ def test_routing_redirect_debugging(monkeypatch, app, client):
     def user():
         return flask.request.form["status"]
 
-    # default redirect code preserves form data
+    # 默认重定向代码保留表单数据
     rv = client.post("/user", data={"status": "success"}, follow_redirects=True)
     assert rv.data == b"success"
 
-    # 301 and 302 raise error
+    # 301 和 302 引发错误
     monkeypatch.setattr(RequestRedirect, "code", 301)
 
     with client, pytest.raises(AssertionError) as exc_info:
@@ -1837,7 +1829,7 @@ def test_subdomain_matching_other_name(matching):
         return "", 204
 
     with pytest.warns(match="Current server name") if matching else nullcontext():
-        # ip address can't match name, but will fall back to default
+        # IP 地址无法与名称匹配，但会恢复为默认值
         rv = client.get("/", "http://127.0.0.1:3000/")
 
     if werkzeug_3_2:
@@ -1845,7 +1837,7 @@ def test_subdomain_matching_other_name(matching):
     else:
         assert rv.status_code == 404 if matching else 204
 
-    # allow all subdomains if matching is disabled
+    # 如果禁用匹配，则允许所有子域
     rv = client.get("/", "http://www.localhost.localdomain:3000/")
     assert rv.status_code == 404 if matching else 204
 
@@ -1881,7 +1873,7 @@ def test_multi_route_class_views(app, client):
 def test_run_defaults(monkeypatch, app):
     rv = {}
 
-    # Mocks werkzeug.serving.run_simple method
+    # 模拟 werkzeug.serving.run_simple 方法
     def run_simple_mock(*args, **kwargs):
         rv["result"] = "running..."
 
@@ -1893,7 +1885,7 @@ def test_run_defaults(monkeypatch, app):
 def test_run_server_port(monkeypatch, app):
     rv = {}
 
-    # Mocks werkzeug.serving.run_simple method
+    # 模拟 werkzeug.serving.run_simple 方法
     def run_simple_mock(hostname, port, application, *args, **kwargs):
         rv["result"] = f"running on {hostname}:{port} ..."
 
@@ -1931,13 +1923,12 @@ def test_run_from_config(
 def test_max_cookie_size(app, client, recwarn):
     app.config["MAX_COOKIE_SIZE"] = 100
 
-    # outside app context, default to Werkzeug static value,
-    # which is also the default config
+    # 在应用程序上下文之外，默认为 Werkzeug 静态值，这也是默认配置
     response = flask.Response()
     default = flask.Flask.default_config["MAX_COOKIE_SIZE"]
     assert response.max_cookie_size == default
 
-    # inside app context, use app config
+    # 在应用程序上下文中，使用应用程序配置
     with app.app_context():
         assert flask.Response().max_cookie_size == 100
 
@@ -1960,8 +1951,8 @@ def test_max_cookie_size(app, client, recwarn):
 
 @require_cpython_gc
 def test_app_freed_on_zero_refcount():
-    # A Flask instance should not create a reference cycle that prevents CPython
-    # from freeing it when all external references to it are released (see #3761).
+    # Flask 实例不应创建一个引用循环，以防止 CPython 在释放对其的所有外部引用时释放它（
+    # 请参阅#3761）。
     gc.disable()
     try:
         app = flask.Flask(__name__)

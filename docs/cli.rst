@@ -397,7 +397,7 @@ The following are equivalent:
 .. code-block:: python
 
     bp = Blueprint('students', __name__, cli_group='other')
-    # or
+    # 或
     app.register_blueprint(bp, cli_group='other')
 
 .. code-block:: text
@@ -410,7 +410,7 @@ commands directly to the application's level:
 .. code-block:: python
 
     bp = Blueprint('students', __name__, cli_group=None)
-    # or
+    # 或
     app.register_blueprint(bp, cli_group=None)
 
 .. code-block:: text
@@ -486,12 +486,12 @@ Create an instance of :class:`~cli.FlaskGroup` and pass it the factory::
 
     def create_app():
         app = Flask('wiki')
-        # other setup
+        # 其他设置
         return app
 
     @click.group(cls=FlaskGroup, create_app=create_app)
     def cli():
-        """Management script for the Wiki application."""
+        """Wiki 应用程序的管理脚本。"""
 
 Define the entry point in :file:`pyproject.toml`:
 

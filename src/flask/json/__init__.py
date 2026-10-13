@@ -11,31 +11,29 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 
 def dumps(obj: t.Any, **kwargs: t.Any) -> str:
-    """Serialize data as JSON.
+    """将数据序列化为 JSON。
 
-    If :data:`~flask.current_app` is available, it will use its
-    :meth:`app.json.dumps() <flask.json.provider.JSONProvider.dumps>`
-    method, otherwise it will use :func:`json.dumps`.
+    如果 :data:`~flask.current_app` 可用，它将使用其
+    :meth:`app.json.dumps() <flask.json.provider.JSONProvider.dumps>` 方法，否则将使用
+    :func:`json.dumps` 。
 
-    :param obj: The data to serialize.
-    :param kwargs: Arguments passed to the ``dumps`` implementation.
+    :param obj: 要序列化的数据。
+    :param kwargs: 传递给 ``dumps`` 实现的参数。
 
     .. versionchanged:: 2.3
-        The ``app`` parameter was removed.
+        ``app`` 参数已被删除。
 
     .. versionchanged:: 2.2
-        Calls ``current_app.json.dumps``, allowing an app to override
-        the behavior.
+        调用 ``current_app.json.dumps`` ，允许应用程序覆盖该行为。
 
     .. versionchanged:: 2.0.2
-        :class:`decimal.Decimal` is supported by converting to a string.
+        通过转换为字符串来支持 :class:`decimal.Decimal` 。
 
     .. versionchanged:: 2.0
-        ``encoding`` will be removed in Flask 2.1.
+        ``encoding`` 将在 Flask 2.1 中删除。
 
     .. versionchanged:: 1.0.3
-        ``app`` can be passed directly, rather than requiring an app
-        context for configuration.
+        ``app`` 可以直接传递，而不需要应用程序上下文进行配置。
     """
     if current_app:
         return current_app.json.dumps(obj, **kwargs)
@@ -45,27 +43,24 @@ def dumps(obj: t.Any, **kwargs: t.Any) -> str:
 
 
 def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
-    """Serialize data as JSON and write to a file.
+    """将数据序列化为 JSON 并写入文件。
 
-    If :data:`~flask.current_app` is available, it will use its
-    :meth:`app.json.dump() <flask.json.provider.JSONProvider.dump>`
-    method, otherwise it will use :func:`json.dump`.
+    如果 :data:`~flask.current_app` 可用，它将使用其
+    :meth:`app.json.dump() <flask.json.provider.JSONProvider.dump>` 方法，否则将使用
+    :func:`json.dump` 。
 
-    :param obj: The data to serialize.
-    :param fp: A file opened for writing text. Should use the UTF-8
-        encoding to be valid JSON.
-    :param kwargs: Arguments passed to the ``dump`` implementation.
+    :param obj: 要序列化的数据。
+    :param fp: 打开用于写入文本的文件。应使用 UTF-8 编码才有效 JSON。
+    :param kwargs: 传递给 ``dump`` 实现的参数。
 
     .. versionchanged:: 2.3
-        The ``app`` parameter was removed.
+        ``app`` 参数已被删除。
 
     .. versionchanged:: 2.2
-        Calls ``current_app.json.dump``, allowing an app to override
-        the behavior.
+        调用 ``current_app.json.dump`` ，允许应用程序覆盖该行为。
 
     .. versionchanged:: 2.0
-        Writing to a binary file, and the ``encoding`` argument, will be
-        removed in Flask 2.1.
+        写入二进制文件和 ``encoding`` 参数将在 Flask 2.1 中删除。
     """
     if current_app:
         current_app.json.dump(obj, fp, **kwargs)
@@ -75,29 +70,26 @@ def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
 
 
 def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
-    """Deserialize data as JSON.
+    """将数据反序列化为 JSON。
 
-    If :data:`~flask.current_app` is available, it will use its
-    :meth:`app.json.loads() <flask.json.provider.JSONProvider.loads>`
-    method, otherwise it will use :func:`json.loads`.
+    如果 :data:`~flask.current_app` 可用，它将使用其
+    :meth:`app.json.loads() <flask.json.provider.JSONProvider.loads>` 方法，否则将使用
+    :func:`json.loads` 。
 
-    :param s: Text or UTF-8 bytes.
-    :param kwargs: Arguments passed to the ``loads`` implementation.
+    :param s: 文本或 UTF-8 字节。
+    :param kwargs: 传递给 ``loads`` 实现的参数。
 
     .. versionchanged:: 2.3
-        The ``app`` parameter was removed.
+        ``app`` 参数已被删除。
 
     .. versionchanged:: 2.2
-        Calls ``current_app.json.loads``, allowing an app to override
-        the behavior.
+        调用 ``current_app.json.loads`` ，允许应用程序覆盖该行为。
 
     .. versionchanged:: 2.0
-        ``encoding`` will be removed in Flask 2.1. The data must be a
-        string or UTF-8 bytes.
+        ``encoding`` 将在 Flask 2.1 中删除。数据必须是字符串或 UTF-8 字节。
 
     .. versionchanged:: 1.0.3
-        ``app`` can be passed directly, rather than requiring an app
-        context for configuration.
+        ``app`` 可以直接传递，而不需要应用程序上下文进行配置。
     """
     if current_app:
         return current_app.json.loads(s, **kwargs)
@@ -106,28 +98,27 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
 
 
 def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
-    """Deserialize data as JSON read from a file.
+    """将数据反序列化为 JSON 从文件中读取。
 
-    If :data:`~flask.current_app` is available, it will use its
-    :meth:`app.json.load() <flask.json.provider.JSONProvider.load>`
-    method, otherwise it will use :func:`json.load`.
+    如果 :data:`~flask.current_app` 可用，它将使用其
+    :meth:`app.json.load() <flask.json.provider.JSONProvider.load>` 方法，否则将使用
+    :func:`json.load` 。
 
-    :param fp: A file opened for reading text or UTF-8 bytes.
-    :param kwargs: Arguments passed to the ``load`` implementation.
+    :param fp: 为读取文本或 UTF-8 字节而打开的文件。
+    :param kwargs: 传递给 ``load`` 实现的参数。
 
     .. versionchanged:: 2.3
-        The ``app`` parameter was removed.
+        ``app`` 参数已被删除。
 
     .. versionchanged:: 2.2
-        Calls ``current_app.json.load``, allowing an app to override
-        the behavior.
+        调用 ``current_app.json.load`` ，允许应用程序覆盖该行为。
 
     .. versionchanged:: 2.2
-        The ``app`` parameter will be removed in Flask 2.3.
+        ``app`` 参数将在 Flask 2.3 中删除。
 
     .. versionchanged:: 2.0
-        ``encoding`` will be removed in Flask 2.1. The file must be text
-        mode, or binary mode with UTF-8 bytes.
+        ``encoding`` 将在 Flask 2.1 中删除。文件必须是文本模式，或具有 UTF-8 字节的二进
+        制模式。
     """
     if current_app:
         return current_app.json.load(fp, **kwargs)
@@ -136,34 +127,30 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
 
 
 def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
-    """Serialize the given arguments as JSON, and return a
-    :class:`~flask.Response` object with the ``application/json``
-    mimetype. A dict or list returned from a view will be converted to a
-    JSON response automatically without needing to call this.
+    """将给定参数序列化为 JSON，并返回具有 ``application/json`` mimetype 的
+    :class:`~flask.Response` 对象。从视图返回的字典或列表将自动转换为 JSON 响应，而无需
+    调用它。
 
-    This requires an active app context, and calls
-    :meth:`app.json.response() <flask.json.provider.JSONProvider.response>`.
+    这需要一个活动的应用程序上下文，并调用
+    :meth:`app.json.response() <flask.json.provider.JSONProvider.response>` 。
 
-    In debug mode, the output is formatted with indentation to make it
-    easier to read. This may also be controlled by the provider.
+    在调试模式下，输出采用缩进格式，以便于阅读。这也可能由提供商控制。
 
-    Either positional or keyword arguments can be given, not both.
-    If no arguments are given, ``None`` is serialized.
+    可以给出位置参数或关键字参数，但不能同时给出两者。如果未给出参数，则序列化 ``None``
+    。
 
-    :param args: A single value to serialize, or multiple values to
-        treat as a list to serialize.
-    :param kwargs: Treat as a dict to serialize.
+    :param args: 要序列化的单个值，或将多个值视为要序列化的列表。
+    :param kwargs: 视为要序列化的字典。
 
     .. versionchanged:: 2.2
-        Calls ``current_app.json.response``, allowing an app to override
-        the behavior.
+        调用 ``current_app.json.response`` ，允许应用程序覆盖该行为。
 
     .. versionchanged:: 2.0.2
-        :class:`decimal.Decimal` is supported by converting to a string.
+        通过转换为字符串来支持 :class:`decimal.Decimal` 。
 
     .. versionchanged:: 0.11
-        Added support for serializing top-level arrays. This was a
-        security risk in ancient browsers. See :ref:`security-json`.
+        添加了对序列化顶级数组的支持。这是古代浏览器中的一个安全风险。请参阅
+        :ref:`security-json` 。
 
     .. versionadded:: 0.2
     """

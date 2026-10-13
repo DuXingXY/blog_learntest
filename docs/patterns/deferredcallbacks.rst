@@ -35,7 +35,7 @@ user in a cookie in a :meth:`~flask.Flask.before_request` callback::
         if language is None:
             language = guess_language_from_request()
 
-            # when the response exists, set a cookie with the language
+            # 当响应存在时，设置带有该语言的 cookie
             @after_this_request
             def remember_language(response):
                 response.set_cookie('user_lang', language)

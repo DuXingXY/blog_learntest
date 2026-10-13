@@ -22,7 +22,7 @@ def test_aborting(app):
         location_parts = rv.headers["Location"].rpartition("/")
 
         if location_parts[0]:
-            # For older Werkzeug that used absolute redirects.
+            # 对于使用绝对重定向的较旧的 Werkzeug 。
             assert location_parts[0] == "http://localhost"
 
         assert location_parts[2] == "test"

@@ -82,7 +82,7 @@ def test_proper_test_request_context(app):
             == "http://foo.localhost.localdomain:5000/"
         )
 
-    # suppress Werkzeug 0.15 warning about name mismatch
+    # 抑制 Werkzeug 0.15 关于名称不匹配的警告
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore", "Current server name", UserWarning, "flask.app"
@@ -189,7 +189,7 @@ def test_session_error_pops_context():
 
     @app.route("/")
     def index():
-        # shouldn't get here
+        # 不应该到这里
         AssertionError()
 
     response = app.test_client().get("/")
@@ -199,8 +199,8 @@ def test_session_error_pops_context():
 
 
 def test_session_dynamic_cookie_name():
-    # This session interface will use a cookie with a different name if the
-    # requested url ends with the string "dynamic_cookie"
+    # 如果请求的 url 以字符串 "dynamic_cookie" 结尾，则此会话接口将使用具有不同名称的
+    # cookie
     class PathAwareSessionInterface(SecureCookieSessionInterface):
         def get_cookie_name(self, app):
             if flask.request.url.endswith("dynamic_cookie"):
@@ -236,14 +236,14 @@ def test_session_dynamic_cookie_name():
 
     test_client = app.test_client()
 
-    # first set the cookie in both /set urls but each with a different value
+    # 首先在两个 /set url 中设置 cookie，但每个都有不同的值
     assert test_client.post("/set", data={"value": "42"}).data == b"value set"
     assert (
         test_client.post("/set_dynamic_cookie", data={"value": "616"}).data
         == b"value set"
     )
 
-    # now check that the relevant values come back - meaning that different
-    # cookies are being used for the urls that end with "dynamic cookie"
+    # 现在检查相关值是否返回 - 这意味着以 "dynamic cookie" 结尾的 url 使用了不同的
+    # cookie
     assert test_client.get("/get").data == b"42"
     assert test_client.get("/get_dynamic_cookie").data == b"616"

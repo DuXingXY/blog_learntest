@@ -147,12 +147,12 @@ output-format = "full"
 
 [tool.ruff.lint]
 select = [
-    "B",  # flake8-bugbear
-    "E",  # pycodestyle error
-    "F",  # pyflakes
-    "I",  # isort
-    "UP",  # pyupgrade
-    "W",  # pycodestyle warning
+    "B",  # flake8-bugbear 规则
+    "E",  # pycodestyle 错误检查
+    "F",  # pyflakes 规则
+    "I",  # isort 导入排序
+    "UP",  # pyupgrade 语法升级
+    "W",  # pycodestyle 警告检查
 ]
 
 [tool.ruff.lint.isort]

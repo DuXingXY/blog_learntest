@@ -188,9 +188,9 @@ def test_templates_and_static(test_apps):
         assert rv.data.strip() == b"Admin File"
 
     with client.get("/admin/static/css/test.css") as rv:
-        assert rv.data.strip() == b"/* nested file */"
+        assert rv.data.strip() == "/* 嵌套文件 */".encode()
 
-    # try/finally, in case other tests use this app for Blueprint tests.
+    # 尝试/最后，以防其他测试使用此应用程序进行 Blueprint 测试。
     max_age_default = app.config["SEND_FILE_MAX_AGE_DEFAULT"]
     try:
         expected_max_age = 3600
@@ -676,17 +676,17 @@ def test_context_processing(app, client):
             "{% if answer %}{{ answer }} is the answer.{% endif %}"
         )
 
-    # App global context processor
+    # 应用程序全局上下文处理器
     @answer_bp.app_context_processor
     def not_answer_context_processor():
         return {"notanswer": 43}
 
-    # Blueprint local context processor
+    # Blueprint 本地上下文处理器
     @answer_bp.context_processor
     def answer_context_processor():
         return {"answer": 42}
 
-    # Setup endpoints for testing
+    # 设置测试端点
     @answer_bp.route("/bp")
     def bp_page():
         return template_string()
@@ -695,7 +695,7 @@ def test_context_processing(app, client):
     def app_page():
         return template_string()
 
-    # Register the blueprint
+    # 注册蓝图
     app.register_blueprint(answer_bp)
 
     app_page_bytes = client.get("/").data
@@ -727,11 +727,11 @@ def test_template_global(app):
     def get_stuff_3():
         return "get_stuff_3"
 
-    # Make sure the function is not in the jinja_env already
+    # 确保该函数不在 jinja_env 中
     assert "get_answer" not in app.jinja_env.globals.keys()
     app.register_blueprint(bp)
 
-    # Tests
+    # 测试
     assert "get_answer" in app.jinja_env.globals.keys()
     assert app.jinja_env.globals["get_answer"] is get_answer
     assert app.jinja_env.globals["get_answer"]() == 42
@@ -780,7 +780,7 @@ def test_request_processing(app, client):
     def teardown_bp(exc):
         evts.append("teardown")
 
-    # Setup routes for testing
+    # 设置测试路由
     @bp.route("/bp")
     def bp_endpoint():
         return "request"
@@ -813,20 +813,20 @@ def test_app_request_processing(app, client):
 
     app.register_blueprint(bp)
 
-    # Setup routes for testing
+    # 设置测试路由
     @app.route("/")
     def bp_endpoint():
         return "request"
 
-    # before first request
+    # 在第一次请求之前
     assert evts == []
 
-    # first request
+    # 第一个请求
     resp = client.get("/").data
     assert resp == b"request|after"
     assert evts == ["before", "after", "teardown"]
 
-    # second request
+    # 第二个请求
     resp = client.get("/").data
     assert resp == b"request|after"
     assert evts == ["before", "after", "teardown"] * 2
@@ -835,7 +835,7 @@ def test_app_request_processing(app, client):
 def test_app_url_processors(app, client):
     bp = flask.Blueprint("bp", __name__)
 
-    # Register app-wide url defaults and preprocessor on blueprint
+    # 在蓝图上注册应用程序范围的 url 默认值和预处理器
     @bp.app_url_defaults
     def add_language_code(endpoint, values):
         values.setdefault("lang_code", flask.g.lang_code)
@@ -844,7 +844,7 @@ def test_app_url_processors(app, client):
     def pull_lang_code(endpoint, values):
         flask.g.lang_code = values.pop("lang_code")
 
-    # Register route rules at the app level
+    # 在应用程序级别注册路由规则
     @app.route("/<lang_code>/")
     def index():
         return flask.url_for("about")
@@ -1067,14 +1067,14 @@ def test_unique_blueprint_names(app, client) -> None:
     app.register_blueprint(bp)
 
     with pytest.raises(ValueError):
-        app.register_blueprint(bp)  # same bp, same name, error
+        app.register_blueprint(bp)  # 相同的bp，相同的名称，错误
 
-    app.register_blueprint(bp, name="again")  # same bp, different name, ok
+    app.register_blueprint(bp, name="again")  # 相同的bp，不同的名字，好吧
 
     with pytest.raises(ValueError):
-        app.register_blueprint(bp2)  # different bp, same name, error
+        app.register_blueprint(bp2)  # 不同的bp，相同的名称，错误
 
-    app.register_blueprint(bp2, name="alt")  # different bp, different name, ok
+    app.register_blueprint(bp2, name="alt")  # 不同的bp，不同的名字，好吧
 
 
 def test_self_registration(app, client) -> None:

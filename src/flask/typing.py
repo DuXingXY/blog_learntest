@@ -8,31 +8,31 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.datastructures import Headers  # noqa: F401
     from werkzeug.sansio.response import Response  # noqa: F401
 
-# The possible types that are directly convertible or are a Response object.
+# 可直接转换的可能类型或者是 Response 对象。
 ResponseValue = t.Union[
     "Response",
     str,
     bytes,
     list[t.Any],
-    # Only dict is actually accepted, but Mapping allows for TypedDict.
+    # 实际只接受 dict，但使用 Mapping 注解可支持 TypedDict。
     t.Mapping[str, t.Any],
     t.Iterator[str],
     t.Iterator[bytes],
-    cabc.AsyncIterable[str],  # for Quart, until App is generic.
+    cabc.AsyncIterable[str],  # 在 App 支持泛型之前，为 Quart 提供此类型。
     cabc.AsyncIterable[bytes],
 ]
 
-# the possible types for an individual HTTP header
+# 单个 HTTP 标头的可能类型
 HeaderValue = str | list[str] | tuple[str, ...]
 
-# the possible types for HTTP headers
+# HTTP 标头的可能类型
 HeadersValue = t.Union[
     "Headers",
     t.Mapping[str, HeaderValue],
     t.Sequence[tuple[str, HeaderValue]],
 ]
 
-# The possible types returned by a route function.
+# 路由函数返回的可能类型。
 ResponseReturnValue = t.Union[
     ResponseValue,
     tuple[ResponseValue, HeadersValue],
@@ -41,12 +41,11 @@ ResponseReturnValue = t.Union[
     "WSGIApplication",
 ]
 
-# Allow any subclass of werkzeug.Response, such as the one from Flask,
-# as a callback argument. Using werkzeug.Response directly makes a
-# callback annotated with flask.Response fail type checking.
+# 允许 werkzeug.Response 的任何子类（例如 Flask 中的子类）作为回调参数。直接使用
+# werkzeug.Response 会使带有 flask.Response 注释的回调失败类型检查。
 ResponseClass = t.TypeVar("ResponseClass", bound="Response")
 
-AppOrBlueprintKey = str | None  # The App key is None, whereas blueprints are named
+AppOrBlueprintKey = str | None  # 应用使用 None 作为键，蓝图使用其名称。
 AfterRequestCallable = (
     t.Callable[[ResponseClass], ResponseClass]
     | t.Callable[[ResponseClass], t.Awaitable[ResponseClass]]
@@ -70,9 +69,8 @@ TemplateTestCallable = t.Callable[..., bool]
 URLDefaultCallable = t.Callable[[str, dict[str, t.Any]], None]
 URLValuePreprocessorCallable = t.Callable[[str | None, dict[str, t.Any] | None], None]
 
-# This should take Exception, but that either breaks typing the argument
-# with a specific exception, or decorating multiple times with different
-# exceptions (and using a union type on the argument).
+# 此处本应接受 Exception，但这会影响特定异常类型的参数注解，
+# 或影响使用不同异常多次装饰同一函数的情况（参数使用联合类型）。
 # https://github.com/pallets/flask/issues/4095
 # https://github.com/pallets/flask/issues/4295
 # https://github.com/pallets/flask/issues/4297

@@ -28,18 +28,18 @@ def test_limit_config(app: Flask):
     app.config["MAX_FORM_PARTS"] = 3
     r = Request({})
 
-    # no app context, use Werkzeug defaults
+    # 没有应用程序上下文，使用 Werkzeug 默认值
     assert r.max_content_length is None
     assert r.max_form_memory_size == 500_000
     assert r.max_form_parts == 1_000
 
-    # in app context, use config
+    # 在应用程序上下文中，使用配置
     with app.app_context():
         assert r.max_content_length == 100
         assert r.max_form_memory_size == 50
         assert r.max_form_parts == 3
 
-    # regardless of app context, use override
+    # 无论应用程序上下文如何，都使用覆盖
     r.max_content_length = 90
     r.max_form_memory_size = 30
     r.max_form_parts = 4

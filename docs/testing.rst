@@ -63,11 +63,11 @@ set up and tear down resources.
             "TESTING": True,
         })
 
-        # other setup can go here
+        # 其他设置可以在这里
 
         yield app
 
-        # clean up / reset resources here
+        # 在这里清理/重置资源
 
 
     @pytest.fixture()
@@ -137,7 +137,7 @@ use ``pathlib.Path`` to get files relative to the current test file.
 
     from pathlib import Path
 
-    # get the resources folder in the tests folder
+    # 获取tests文件夹中的resources文件夹
     resources = Path(__file__).parent / "resources"
 
     def test_edit_user(client):
@@ -193,9 +193,9 @@ which records the request that produced that response.
 
     def test_logout_redirect(client):
         response = client.get("/logout", follow_redirects=True)
-        # Check that there was one redirect response.
+        # 检查是否有一个重定向响应。
         assert len(response.history) == 1
-        # Check that the second request was to the index page.
+        # 检查第二个请求是否是针对索引页的。
         assert response.request.path == "/index"
 
 
@@ -214,10 +214,10 @@ until the ``with`` block ends.
     def test_access_session(client):
         with client:
             client.post("/auth/login", data={"username": "flask"})
-            # session is still accessible
+            # 会话仍然可以访问
             assert session["user_id"] == 1
 
-        # session is no longer accessible
+        # 会话不再可访问
 
 If you want to access or set a value in the session *before* making a
 request, use the client's
@@ -231,10 +231,10 @@ session once the block ends.
 
     def test_modify_session(client):
         with client.session_transaction() as session:
-            # set a user id without going through the login route
+            # 设置用户 ID 而不通过登录路径
             session["user_id"] = 1
 
-        # session is saved now
+        # 会话现已保存
 
         response = client.get("/users/me")
         assert response.json["username"] == "flask"
@@ -300,7 +300,7 @@ takes the same arguments as the test client's request methods.
         with app.test_request_context(
             "/user/2/edit", method="POST", data={"name": ""}
         ):
-            # call a function that accesses `request`
+            # 调用访问 `request` 的函数
             messages = validate_edit_user()
 
         assert messages["name"][0] == "Name cannot be empty."

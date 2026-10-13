@@ -17,8 +17,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     class ProxyMixin(t.Protocol[T]):
         def _get_current_object(self) -> T: ...
 
-    # These subclasses inform type checkers that the proxy objects look like the
-    # proxied type along with the _get_current_object method.
+    # 这些子类通知类型检查器代理对象看起来像代理类型以及 _get_current_object 方法。
     class FlaskProxy(ProxyMixin[Flask], Flask): ...
 
     class AppContextProxy(ProxyMixin[AppContext], AppContext): ...

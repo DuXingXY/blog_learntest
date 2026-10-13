@@ -48,8 +48,8 @@ Example usage::
     @app.route('/special-api', methods=['POST'])
     def special_api():
         hash = generate_checksum(request)
-        # Accessing this parses the input stream
+        # 访问此解析输入流
         files = request.files
-        # At this point the hash is fully constructed.
+        # 至此，哈希值已完全构建完毕。
         checksum = hash.hexdigest()
         return f"Hash was: {checksum}"

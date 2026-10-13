@@ -9,9 +9,7 @@ from flask.globals import app_ctx as _app_ctx
 
 @pytest.fixture(autouse=True)
 def _standard_os_environ(monkeypatch):
-    """Set up ``os.environ`` at the start of every test to have
-    standard values.
-    """
+    """在每次测试开始时设置 ``os.environ`` 以获得标准值。"""
     for key in (
         "FLASK_ENV_FILE",
         "FLASK_APP",
@@ -58,16 +56,16 @@ def test_apps(monkeypatch):
 
     yield
 
-    # Remove any imports cached during the test. Otherwise "import app"
-    # will work in the next test even though it's no longer on the path.
+    # 删除测试期间缓存的所有导入。否则 "import app" 将在下一个测试中工作，即使它不再在路
+    # 径上。
     for key in sys.modules.keys() - original_modules:
         sys.modules.pop(key)
 
 
 @pytest.fixture(autouse=True)
 def leak_detector():
-    """Fails if any app contexts are still pushed when a test ends. Pops all
-    contexts so subsequent tests are not affected.
+    """如果测试结束时仍然推送任何应用程序上下文，则会失败。弹出所有上下文，以便后续测试
+    不受影响。
     """
     yield
     leaks = []
@@ -81,7 +79,7 @@ def leak_detector():
 
 @pytest.fixture
 def modules_tmp_path(tmp_path, monkeypatch):
-    """A temporary directory added to sys.path."""
+    """添加到 sys.path 的临时目录。"""
     rv = tmp_path / "modules_tmp"
     rv.mkdir()
     monkeypatch.syspath_prepend(os.fspath(rv))
@@ -96,7 +94,7 @@ def modules_tmp_path_prefix(modules_tmp_path, monkeypatch):
 
 @pytest.fixture
 def site_packages(modules_tmp_path, monkeypatch):
-    """Create a fake site-packages."""
+    """创建一个假站点包。"""
     py_dir = f"python{sys.version_info.major}.{sys.version_info.minor}"
     rv = modules_tmp_path / "lib" / py_dir / "site-packages"
     rv.mkdir(parents=True)

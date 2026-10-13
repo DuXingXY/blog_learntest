@@ -32,7 +32,7 @@ Create a virtualenv, install your application, then install
     $ cd hello-app
     $ python -m venv .venv
     $ . .venv/bin/activate
-    $ pip install .  # install your application
+    $ pip install .  # 安装您的应用程序
     $ pip install gunicorn
 
 
@@ -48,10 +48,10 @@ app factory pattern.
 
 .. code-block:: text
 
-    # equivalent to 'from hello import app'
+    # 相当于 'from hello import app'
     $ gunicorn -w 4 'hello:app'
 
-    # equivalent to 'from hello import create_app; create_app()'
+    # 相当于 'from hello import create_app; create_app()'
     $ gunicorn -w 4 'hello:create_app()'
 
     Starting gunicorn 20.1.0

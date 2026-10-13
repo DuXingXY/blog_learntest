@@ -101,7 +101,7 @@ def test_view_decorators(app, client):
 def test_view_provide_automatic_options_attr_disable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """Automatic options can be disabled by the view class attribute."""
+    """自动选项可以通过视图类属性禁用。"""
 
     class Index(flask.views.View):
         provide_automatic_options = False
@@ -117,9 +117,7 @@ def test_view_provide_automatic_options_attr_disable(
 def test_view_provide_automatic_options_attr_enable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """When default automatic options is disabled in config, it can still be
-    enabled by the view class attribute.
-    """
+    """当配置中禁用默认自动选项时，仍然可以通过视图类属性启用它。"""
     app.config["PROVIDE_AUTOMATIC_OPTIONS"] = False
 
     class Index(flask.views.View):
@@ -136,7 +134,7 @@ def test_view_provide_automatic_options_attr_enable(
 def test_provide_automatic_options_method_disable(
     app: flask.Flask, client: FlaskClient
 ) -> None:
-    """Automatic options is ignored if the route handles options."""
+    """如果路由处理选项，则自动选项将被忽略。"""
 
     class Index(flask.views.View):
         methods = ["OPTIONS"]
@@ -193,7 +191,7 @@ def test_endpoint_override(app):
     with pytest.raises(AssertionError):
         app.add_url_rule("/other", view_func=Index.as_view("index"))
 
-    # But these tests should still pass. We just log a warning.
+    # 但这些测试仍然应该通过。我们只是记录一个警告。
     common_test(app)
 
 

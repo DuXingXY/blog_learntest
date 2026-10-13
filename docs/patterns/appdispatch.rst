@@ -117,14 +117,14 @@ This dispatcher can then be used like this:
     def make_app(subdomain):
         user = get_user_for_subdomain(subdomain)
         if user is None:
-            # if there is no user for that subdomain we still have
-            # to return a WSGI application that handles that request.
-            # We can then just return the NotFound() exception as
-            # application which will render a default 404 page.
-            # You might also redirect the user to the main page then
+            # 如果该子域没有用户，我们仍然有
+            # 返回处理该请求的 WSGI 应用程序。
+            # 然后我们可以将 NotFound() 异常返回为
+            # 将呈现默认 404 页面的应用程序。
+            # 您还可以将用户重定向到主页
             return NotFound()
 
-        # otherwise create the application for the specific user
+        # 否则为特定用户创建应用程序
         return create_app(user)
 
     application = SubdomainDispatcher('example.com', make_app)

@@ -4,12 +4,10 @@ about: Suggest a new feature for Flask
 ---
 
 <!--
-Replace this comment with a description of what the feature should do.
-Include details such as links to relevant specs or previous discussions.
+将此注释替换为该功能应执行的操作的描述。包括详细信息，例如相关规范或之前讨论的链接。
 -->
 
 <!--
-Replace this comment with an example of the problem which this feature
-would resolve. Is this problem solvable without changes to Flask, such
-as by subclassing or using an extension?
+将此注释替换为此功能将解决的问题的示例。这个问题是否可以在不更改 Flask 的情况下解决，例
+如通过子类化或使用扩展？
 -->

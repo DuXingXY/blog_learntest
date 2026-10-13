@@ -129,7 +129,7 @@ Add the Python functions that will run these SQL commands to the
 
     @click.command('init-db')
     def init_db_command():
-        """Clear the existing data and create new tables."""
+        """清除现有数据并创建新表。"""
         init_db()
         click.echo('Initialized the database.')
 
@@ -184,7 +184,7 @@ the end of the factory function before returning the app.
 
     def create_app():
         app = ...
-        # existing code omitted
+        # 现有代码被省略
 
         from . import db
         db.init_app(app)

@@ -15,14 +15,12 @@ if t.TYPE_CHECKING:
 
 
 class UnexpectedUnicodeError(AssertionError, UnicodeError):
-    """Raised in places where we want some better error reporting for
-    unexpected unicode or binary data.
-    """
+    """在我们希望针对意外的 unicode 或二进制数据提供更好的错误报告的地方引发。"""
 
 
 class DebugFilesKeyError(KeyError, AssertionError):
-    """Raised from request.files during debugging.  The idea is that it can
-    provide a better error message than just a generic KeyError/BadRequest.
+    """在调试期间从 request.files 引发。  这个想法是，它可以提供比通用 KeyError/
+    BadRequest 更好的错误消息。
     """
 
     def __init__(self, request: Request, key: str) -> None:
@@ -48,10 +46,8 @@ class DebugFilesKeyError(KeyError, AssertionError):
 
 
 class FormDataRoutingRedirect(AssertionError):
-    """This exception is raised in debug mode if a routing redirect
-    would cause the browser to drop the method or body. This happens
-    when method is not GET, HEAD or OPTIONS and the status code is not
-    307 or 308.
+    """如果路由重定向会导致浏览器删除方法或正文，则会在调试模式下引发此异常。当方法不是
+    GET、HEAD 或 OPTIONS 并且状态代码不是 307 或 308 时，会发生这种情况。
     """
 
     def __init__(self, request: Request) -> None:
@@ -79,11 +75,10 @@ class FormDataRoutingRedirect(AssertionError):
 
 
 def attach_enctype_error_multidict(request: Request) -> None:
-    """Patch ``request.files.__getitem__`` to raise a descriptive error
-    about ``enctype=multipart/form-data``.
+    """修补 ``request.files.__getitem__`` 以引发有关 ``enctype=multipart/form-data`` 的
+    描述性错误。
 
-    :param request: The request to patch.
-    :meta private:
+    :param request: 请求修补。 ：元私有：
     """
     oldcls = request.files.__class__
 
@@ -132,7 +127,7 @@ def explain_template_loading_attempts(
         ]
     ],
 ) -> None:
-    """This should help developers understand what failed"""
+    """这应该可以帮助开发人员了解失败的原因"""
     info = [f"Locating template {template!r}:"]
     total_found = 0
     blueprint = None

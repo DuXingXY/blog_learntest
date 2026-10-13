@@ -1,5 +1,5 @@
-# This file was part of Flask-CLI and was modified under the terms of
-# its Revised BSD License. Copyright © 2015 CERN.
+# 该文件是 Flask-CLI 的一部分，并根据其修订版 BSD 许可证的条款进行了修改。版权所有 ©
+# 2015 CERN。
 import importlib.metadata
 import os
 import platform
@@ -38,7 +38,7 @@ def runner():
 
 
 def test_cli_name(test_apps):
-    """Make sure the CLI object's name is the app's name and not the app itself"""
+    """确保 CLI 对象的名称是应用程序的名称，而不是应用程序本身"""
     from cliapp.app import testapp
 
     assert testapp.cli.name == testapp.name
@@ -139,7 +139,7 @@ def test_find_best_app(test_apps):
         ("a/test", cwd / "a", "test"),
         ("test/__init__.py", cwd, "test"),
         ("test/__init__", cwd, "test"),
-        # nested package
+        # 嵌套包
         (
             test_path / "cliapp" / "inner1" / "__init__",
             test_path,
@@ -150,20 +150,18 @@ def test_find_best_app(test_apps):
             test_path,
             "cliapp.inner1.inner2",
         ),
-        # dotted name
+        # 点名称
         ("test.a.b", cwd, "test.a.b"),
         (test_path / "cliapp.app", test_path, "cliapp.app"),
-        # not a Python file, will be caught during import
+        # 不是 Python 文件，将在导入过程中被捕获
         (test_path / "cliapp" / "message.txt", test_path, "cliapp.message.txt"),
     ),
 )
 def test_prepare_import(request, value, path, result):
-    """Expect the correct path to be set and the correct import and app names
-    to be returned.
+    """期望设置正确的路径并返回正确的导入和应用程序名称。
 
-    :func:`prepare_exec_for_file` has a side effect where the parent directory
-    of the given import is added to :data:`sys.path`. This is reset after the
-    test runs.
+    :func:`prepare_exec_for_file` 有一个副作用，即给定导入的父目录被添加到
+    :data:`sys.path` 。测试运行后此值会重置。
     """
     original_path = sys.path[:]
 
@@ -185,9 +183,9 @@ def test_prepare_import(request, value, path, result):
         ("cliapp.factory", "create_app", "app"),
         ("cliapp.factory", "create_app()", "app"),
         ("cliapp.factory", 'create_app2("foo", "bar")', "app2_foo_bar"),
-        # trailing comma space
+        # 尾随逗号空格
         ("cliapp.factory", 'create_app2("foo", "bar", )', "app2_foo_bar"),
-        # strip whitespace
+        # 去除空白
         ("cliapp.factory", " create_app () ", "app"),
     ),
 )
@@ -201,15 +199,15 @@ def test_locate_app(test_apps, iname, aname, result):
         ("notanapp.py", None),
         ("cliapp/app", None),
         ("cliapp.app", "notanapp"),
-        # not enough arguments
+        # 没有足够的论据
         ("cliapp.factory", 'create_app2("foo")'),
-        # invalid identifier
+        # 无效的标识符
         ("cliapp.factory", "create_app("),
-        # no app returned
+        # 没有返回应用程序
         ("cliapp.factory", "no_app"),
-        # nested import error
+        # 嵌套导入错误
         ("cliapp.importerrorapp", None),
-        # not a Python file
+        # 不是 Python 文件
         ("cliapp.message.txt", None),
     ),
 )
@@ -222,7 +220,7 @@ def test_locate_app_suppress_raise(test_apps):
     app = locate_app("notanapp.py", None, raise_if_not_found=False)
     assert app is None
 
-    # only direct import error is suppressed
+    # 仅抑制直接导入错误
     with pytest.raises(NoAppException):
         locate_app("cliapp.importerrorapp", None, raise_if_not_found=False)
 
@@ -249,7 +247,7 @@ def test_scriptinfo(test_apps, monkeypatch):
     assert app.name == "testapp"
     assert obj.load_app() is app
 
-    # import app with module's absolute path
+    # 使用模块的绝对路径导入应用程序
     cli_app_path = str(test_path / "cliapp" / "app.py")
 
     obj = ScriptInfo(app_import_path=cli_app_path)
@@ -272,13 +270,13 @@ def test_scriptinfo(test_apps, monkeypatch):
     obj = ScriptInfo()
     pytest.raises(NoAppException, obj.load_app)
 
-    # import app from wsgi.py in current directory
+    # 从当前目录中的 wsgi.py 导入应用程序
     monkeypatch.chdir(test_path / "helloworld")
     obj = ScriptInfo()
     app = obj.load_app()
     assert app.name == "hello"
 
-    # import app from app.py in current directory
+    # 从当前目录中的 app.py 导入应用程序
     monkeypatch.chdir(test_path / "cliapp")
     obj = ScriptInfo()
     app = obj.load_app()
@@ -287,14 +285,14 @@ def test_scriptinfo(test_apps, monkeypatch):
 
 def test_app_cli_has_app_context(app, runner):
     def _param_cb(ctx, param, value):
-        # current_app should be available in parameter callbacks
+        # current_app 应该在参数回调中可用
         return bool(current_app)
 
     @app.cli.command()
     @click.argument("value", callback=_param_cb)
     def check(value):
         app = click.get_current_context().obj.load_app()
-        # the loaded app should be the same as current_app
+        # 加载的应用程序应与 current_app 相同
         same_app = current_app._get_current_object() is app
         return same_app, value
 
@@ -460,9 +458,9 @@ class TestRoutes:
         return partial(runner.invoke, cli)
 
     def expect_order(self, order, output):
-        # skip the header and match the start of each row
+        # 跳过标题并匹配每行的开头
         for expect, line in zip(order, output.splitlines()[2:], strict=False):
-            # do this instead of startswith for nicer pytest output
+            # 这样做而不是startswith以获得更好的pytest输出
             assert line[: len(expect)] == expect
 
     def test_simple(self, invoke):
@@ -541,17 +539,17 @@ def test_load_dotenv(monkeypatch):
     monkeypatch.chdir(test_path)
     assert load_dotenv()
     assert Path.cwd() == test_path
-    # .flaskenv doesn't overwrite .env
+    # .flaskenv 不会覆盖 .env
     assert os.environ["FOO"] == "env"
-    # set only in .flaskenv
+    # 仅在 .flaskenv 中设置
     assert os.environ["BAR"] == "bar"
-    # set only in .env
+    # 仅在 .env 中设置
     assert os.environ["SPAM"] == "1"
-    # set manually, files don't overwrite
+    # 手动设置，文件不会覆盖
     assert os.environ["EGGS"] == "3"
-    # test env file encoding
+    # 测试 env 文件编码
     assert os.environ["HAM"] == "火腿"
-    # Non existent file should not load
+    # 不存在的文件不应加载
     assert not load_dotenv("non-existent-file", load_defaults=False)
 
 
@@ -583,19 +581,19 @@ def test_disable_dotenv_from_env(monkeypatch, runner):
 
 
 def test_run_cert_path():
-    # no key
+    # 没有钥匙
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--cert", __file__])
 
-    # no cert
+    # 没有证书
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--key", __file__])
 
-    # cert specified first
+    # 首先指定证书
     ctx = run_command.make_context("run", ["--cert", __file__, "--key", __file__])
     assert ctx.params["cert"] == (__file__, __file__)
 
-    # key specified first
+    # 首先指定的键
     ctx = run_command.make_context("run", ["--key", __file__, "--cert", __file__])
     assert ctx.params["cert"] == (__file__, __file__)
 
@@ -603,16 +601,16 @@ def test_run_cert_path():
 def test_run_cert_adhoc(monkeypatch):
     monkeypatch.setitem(sys.modules, "cryptography", None)
 
-    # cryptography not installed
+    # 未安装加密技术
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--cert", "adhoc"])
 
-    # cryptography installed
+    # 安装了加密技术
     monkeypatch.setitem(sys.modules, "cryptography", types.ModuleType("cryptography"))
     ctx = run_command.make_context("run", ["--cert", "adhoc"])
     assert ctx.params["cert"] == "adhoc"
 
-    # no key with adhoc
+    # 没有特别的密钥
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--cert", "adhoc", "--key", __file__])
 
@@ -620,21 +618,21 @@ def test_run_cert_adhoc(monkeypatch):
 def test_run_cert_import(monkeypatch):
     monkeypatch.setitem(sys.modules, "not_here", None)
 
-    # ImportError
+    # 导入错误
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--cert", "not_here"])
 
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--cert", "flask"])
 
-    # SSLContext
+    # SSL上下文
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
     monkeypatch.setitem(sys.modules, "ssl_context", ssl_context)
     ctx = run_command.make_context("run", ["--cert", "ssl_context"])
     assert ctx.params["cert"] is ssl_context
 
-    # no --key with SSLContext
+    # SSLContext 没有 --key
     with pytest.raises(click.BadParameter):
         run_command.make_context("run", ["--cert", "ssl_context", "--key", __file__])
 
@@ -647,7 +645,7 @@ def test_run_cert_no_ssl(monkeypatch):
 
 
 def test_cli_blueprints(app):
-    """Test blueprint commands register correctly to the application"""
+    """测试蓝图命令正确注册到应用程序"""
     custom = Blueprint("custom", __name__, cli_group="customized")
     nested = Blueprint("nested", __name__)
     merged = Blueprint("merged", __name__, cli_group=None)
@@ -690,7 +688,7 @@ def test_cli_blueprints(app):
 
 
 def test_cli_empty(app):
-    """If a Blueprint's CLI group is empty, do not register it."""
+    """如果 Blueprint 的 CLI 组为空，则不要注册它。"""
     bp = Blueprint("blue", __name__, cli_group="blue")
     app.register_blueprint(bp)
 

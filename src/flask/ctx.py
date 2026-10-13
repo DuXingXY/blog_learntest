@@ -23,32 +23,29 @@ if t.TYPE_CHECKING:
     from .wrappers import Request
 
 
-# a singleton sentinel value for parameter defaults
+# 参数默认值的单例哨兵值
 _sentinel = object()
 
 
 class _AppCtxGlobals:
-    """A plain object. Used as a namespace for storing data during an
-    application context.
+    """一个普通的物体。用作在应用程序上下文期间存储数据的命名空间。
 
-    Creating an app context automatically creates this object, which is
-    made available as the :data:`.g` proxy.
+    创建应用程序上下文会自动创建此对象，该对象可用作 :data:`.g` 代理。
 
     .. describe:: 'key' in g
 
-        Check whether an attribute is present.
+        检查属性是否存在。
 
         .. versionadded:: 0.10
 
     .. describe:: iter(g)
 
-        Return an iterator over the attribute names.
+        返回属性名称的迭代器。
 
         .. versionadded:: 0.10
     """
 
-    # Define attr methods to let mypy know this is a namespace object
-    # that has arbitrary attributes.
+    # 定义 attr 方法让 mypy 知道这是一个具有任意属性的命名空间对象。
 
     def __getattr__(self, name: str) -> t.Any:
         try:
@@ -66,22 +63,20 @@ class _AppCtxGlobals:
             raise AttributeError(name) from None
 
     def get(self, name: str, default: t.Any | None = None) -> t.Any:
-        """Get an attribute by name, or a default value. Like
-        :meth:`dict.get`.
+        """按名称或默认值获取属性。就像 :meth:`dict.get` 一样。
 
-        :param name: Name of attribute to get.
-        :param default: Value to return if the attribute is not present.
+        :param name: 要获取的属性名称。
+        :param default: 如果属性不存在则返回值。
 
         .. versionadded:: 0.10
         """
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
-        """Get and remove an attribute by name. Like :meth:`dict.pop`.
+        """按名称获取和删除属性。就像 :meth:`dict.pop` 一样。
 
-        :param name: Name of attribute to pop.
-        :param default: Value to return if the attribute is not present,
-            instead of raising a ``KeyError``.
+        :param name: 要弹出的属性名称。
+        :param default: 如果属性不存在则返回值，而不是引发 ``KeyError`` 。
 
         .. versionadded:: 0.11
         """
@@ -91,12 +86,11 @@ class _AppCtxGlobals:
             return self.__dict__.pop(name, default)
 
     def setdefault(self, name: str, default: t.Any = None) -> t.Any:
-        """Get the value of an attribute if it is present, otherwise
-        set and return a default value. Like :meth:`dict.setdefault`.
+        """获取属性的值（如果存在），否则设置并返回默认值。就像 :meth:`dict.setdefault`
+        一样。
 
-        :param name: Name of attribute to get.
-        :param default: Value to set and return if the attribute is not
-            present.
+        :param name: 要获取的属性名称。
+        :param default: 如果属性不存在，则设置并返回的值。
 
         .. versionadded:: 0.11
         """
@@ -118,10 +112,9 @@ class _AppCtxGlobals:
 def after_this_request(
     f: ft.AfterRequestCallable[t.Any],
 ) -> ft.AfterRequestCallable[t.Any]:
-    """Decorate a function to run after the current request. The behavior is the
-    same as :meth:`.Flask.after_request`, except it only applies to the current
-    request, rather than every request. Therefore, it must be used within a
-    request context, rather than during setup.
+    """装饰一个函数以在当前请求之后运行。该行为与 :meth:`.Flask.after_request` 相同，但
+    它仅适用于当前请求，而不是每个请求。因此，它必须在请求上下文中使用，而不是在设置期间
+    使用。
 
     .. code-block:: python
 
@@ -152,25 +145,20 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 
 def copy_current_request_context(f: F) -> F:
-    """Decorate a function to run inside the current request context. This can
-    be used when starting a background task, otherwise it will not see the app
-    and request objects that were active in the parent.
+    """装饰一个函数以在当前请求上下文中运行。这可以在启动后台任务时使用，否则它将看不到
+    父级中活动的应用程序和请求对象。
 
     .. warning::
 
-        Due to the following caveats, it is often safer (and simpler) to pass
-        the data you need when starting the task, rather than using this and
-        relying on the context objects.
+        由于以下注意事项，在启动任务时传递所需的数据通常更安全（也更简单），而不是使用它
+        并依赖于上下文对象。
 
-    In order to avoid execution switching partially though reading data, either
-    read the request body (access ``form``, ``json``, ``data``, etc) before
-    starting the task, or use a lock. This can be an issue when using threading,
-    but shouldn't be an issue when using greenlet/gevent or asyncio.
+    为了避免通过读取数据部分执行切换，请在开始任务之前读取请求正文（访问 ``form`` 、
+    ``json`` 、 ``data`` 等），或者使用锁。使用线程时这可能是一个问题，但使用 greenlet/
+    gevent 或 asyncio 时不应该是问题。
 
-    If the task will access ``session``, be sure to do so in the parent as well
-    so that the ``Vary: cookie`` header will be set. Modifying ``session`` in
-    the task should be avoided, as it may execute after the response cookie has
-    already been written.
+    如果任务将访问 ``session`` ，请确保也在父级中执行此操作，以便设置 ``Vary: cookie``
+    标头。应避免在任务中修改 ``session`` ，因为它可能会在响应 cookie 写入后执行。
 
     .. code-block:: python
 
@@ -181,15 +169,15 @@ def copy_current_request_context(f: F) -> F:
         def index():
             @copy_current_request_context
             def do_some_work():
-                # do some work here, it can access flask.request or
-                # flask.session like you would otherwise in the view function.
+                # 在这里做一些工作，它可以访问 flask.request 或
+                # flask.session 就像在视图函数中那样。
                 ...
             gevent.spawn(do_some_work)
             return 'Regular response'
 
     .. versionadded:: 0.10
     """
-    # Store the context that was active when the decorator was applied.
+    # 存储应用装饰器时处于活动状态的上下文。
     original = _cv_app.get(None)
 
     if original is None:
@@ -199,7 +187,7 @@ def copy_current_request_context(f: F) -> F:
         )
 
     def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
-        # Copy the context before pushing, so each worker acts independently.
+        # 在推送之前复制上下文，以便每个工作人员独立操作。
         with original.copy() as ctx:
             return ctx.app.ensure_sync(f)(*args, **kwargs)
 
@@ -207,7 +195,7 @@ def copy_current_request_context(f: F) -> F:
 
 
 def has_request_context() -> bool:
-    """Test if an app context is active and if it has request information.
+    """测试应用程序上下文是否处于活动状态以及是否有请求信息。
 
     .. code-block:: python
 
@@ -216,9 +204,9 @@ def has_request_context() -> bool:
         if has_request_context():
             remote_addr = request.remote_addr
 
-    If a request context is active, the :data:`.request` and :data:`.session`
-    context proxies will available and ``True``, otherwise ``False``. You can
-    use that to test the data you use, rather than using this function.
+    如果请求上下文处于活动状态，则 :data:`.request` 和 :data:`.session` 上下文代理将可用
+    ，并且 ``True`` 可用，否则为 ``False`` 。您可以使用它来测试您使用的数据，而不是使用
+    此函数。
 
     .. code-block:: python
 
@@ -233,8 +221,8 @@ def has_request_context() -> bool:
 
 
 def has_app_context() -> bool:
-    """Test if an app context is active. Unlike :func:`has_request_context`
-    this can be true outside a request, such as in a CLI command.
+    """测试应用程序上下文是否处于活动状态。与 :func:`has_request_context` 不同，这可以在
+    请求之外为真，例如在 CLI 命令中。
 
     .. code-block:: python
 
@@ -243,13 +231,13 @@ def has_app_context() -> bool:
         if has_app_context():
             g.cached_data = ...
 
-    If an app context is active, the :data:`.g` and :data:`.current_app` context
-    proxies will available and ``True``, otherwise ``False``. You can use that
-    to test the data you use, rather than using this function.
+    如果应用程序上下文处于活动状态，则 :data:`.g` 和 :data:`.current_app` 上下文代理将可
+    用，并且 ``True`` ，否则为 ``False`` 。您可以使用它来测试您使用的数据，而不是使用此
+    函数。
 
         from flask import g
 
-        if g:
+        如果 g：
             g.cached_data = ...
 
     .. versionadded:: 0.9
@@ -258,43 +246,34 @@ def has_app_context() -> bool:
 
 
 class AppContext:
-    """An app context contains information about an app, and about the request
-    when handling a request. A context is pushed at the beginning of each
-    request and CLI command, and popped at the end. The context is referred to
-    as a "request context" if it has request information, and an "app context"
-    if not.
+    """应用程序上下文包含有关应用程序以及处理请求时的请求的信息。在每个请求和 CLI 命令的
+    开头推送上下文，并在末尾弹出。如果上下文有请求信息，则称为 "request context"，如果没
+    有，则称为 "app context"。
 
-    Do not use this class directly. Use :meth:`.Flask.app_context` to create an
-    app context if needed during setup, and :meth:`.Flask.test_request_context`
-    to create a request context if needed during tests.
+    不要直接使用此类。如果在设置期间需要，请使用 :meth:`.Flask.app_context` 创建应用程序
+    上下文，如果在测试期间需要，请使用 :meth:`.Flask.test_request_context` 创建请求上下
+    文。
 
-    When the context is popped, it will evaluate all the teardown functions
-    registered with :meth:`~flask.Flask.teardown_request` (if handling a
-    request) then :meth:`.Flask.teardown_appcontext`.
+    当弹出上下文时，它将评估使用 :meth:`~flask.Flask.teardown_request` 注册的所有清理函
+    数（如果处理请求），然后评估 :meth:`.Flask.teardown_appcontext` 。
 
-    When using the interactive debugger, the context will be restored so
-    ``request`` is still accessible. Similarly, the test client can preserve the
-    context after the request ends. However, teardown functions may already have
-    closed some resources such as database connections, and will run again when
-    the restored context is popped.
+    使用交互式调试器时，上下文将被恢复，因此 ``request`` 仍然可以访问。同样，测试客户端
+    可以在请求结束后保留上下文。但是，清理函数可能已经关闭了一些资源（例如数据库连接），
+    并且在弹出恢复的上下文时将再次运行。
 
-    :param app: The application this context represents.
-    :param request: The request data this context represents.
-    :param session: The session data this context represents. If not given,
-        loaded from the request on first access.
+    :param app: 此上下文代表的应用程序。
+    :param request: 该上下文代表的请求数据。
+    :param session: 此上下文表示的会话数据。如果未给出，则在第一次访问时从请求加载。
 
     .. versionchanged:: 3.2
-        Merged with ``RequestContext``. The ``RequestContext`` alias will be
-        removed in Flask 4.0.
+        与 ``RequestContext`` 合并。 ``RequestContext`` 别名将在 Flask 4.0 中删除。
 
     .. versionchanged:: 3.2
-        A combined app and request context is pushed for every request and CLI
-        command, rather than trying to detect if an app context is already
-        pushed.
+        为每个请求和 CLI 命令推送组合的应用程序和请求上下文，而不是尝试检测应用程序上下
+        文是否已推送。
 
     .. versionchanged:: 3.2
-        The session is loaded the first time it is accessed, rather than when
-        the context is pushed.
+        会话在第一次访问时加载，而不是在推送上下文时加载。
     """
 
     def __init__(
@@ -305,16 +284,15 @@ class AppContext:
         session: SessionMixin | None = None,
     ) -> None:
         self.app = app
-        """The application represented by this context. Accessed through
-        :data:`.current_app`.
+        """此上下文代表的应用程序。通过 :data:`.current_app` 访问。
         """
 
         self.g: _AppCtxGlobals = app.app_ctx_globals_class()
-        """The global data for this context. Accessed through :data:`.g`."""
+        """此上下文的全局数据。通过 :data:`.g` 访问。"""
 
         self.url_adapter: MapAdapter | None = None
-        """The URL adapter bound to the request, or the app if not in a request.
-        May be ``None`` if binding failed.
+        """URL 适配器绑定到请求，或者应用程序（如果不在请求中）。如果绑定失败，可能是
+        ``None`` 。
         """
 
         self._request: Request | None = request
@@ -329,19 +307,18 @@ class AppContext:
                 self._request.routing_exception = e
 
         self._cv_token: contextvars.Token[AppContext] | None = None
-        """The previous state to restore when popping."""
+        """弹出时恢复之前的状态。"""
 
         self._push_count: int = 0
-        """Track nested pushes of this context. Cleanup will only run once the
-        original push has been popped.
+        """跟踪此上下文的嵌套推送。只有在弹出原始推送后才会运行清理操作。
         """
 
     @classmethod
     def from_environ(cls, app: Flask, environ: WSGIEnvironment, /) -> te.Self:
-        """Create an app context with request data from the given WSGI environ.
+        """使用给定 WSGI 环境中的请求数据创建应用程序上下文。
 
-        :param app: The application this context represents.
-        :param environ: The request data this context represents.
+        :param app: 此上下文代表的应用程序。
+        :param environ: 该上下文代表的请求数据。
         """
         request = app.request_class(environ)
         request.json_module = app.json
@@ -349,15 +326,15 @@ class AppContext:
 
     @property
     def has_request(self) -> bool:
-        """True if this context was created with request data."""
+        """True 如果此上下文是使用请求数据创建的。"""
         return self._request is not None
 
     def copy(self) -> te.Self:
-        """Create a new context with the same data objects as this context. See
-        :func:`.copy_current_request_context`.
+        """使用与此上下文相同的数据对象创建一个新上下文。请参阅
+        :func:`.copy_current_request_context` 。
 
         .. versionchanged:: 1.1
-            The current session data is used instead of reloading the original data.
+            使用当前会话数据而不是重新加载原始数据。
 
         .. versionadded:: 0.10
         """
@@ -369,9 +346,8 @@ class AppContext:
 
     @property
     def request(self) -> Request:
-        """The request object associated with this context. Accessed through
-        :data:`.request`. Only available in request contexts, otherwise raises
-        :exc:`RuntimeError`.
+        """与此上下文关联的请求对象。通过 :data:`.request` 访问。仅在请求上下文中可用，
+        否则引发 :exc:`RuntimeError` 。
         """
         if self._request is None:
             raise RuntimeError("There is no request in this context.")
@@ -379,7 +355,7 @@ class AppContext:
         return self._request
 
     def _get_session(self) -> SessionMixin:
-        """Open the session if it is not already open for this request context."""
+        """如果尚未为此请求上下文打开会话，则打开会话。"""
         if self._request is None:
             raise RuntimeError("There is no request in this context.")
 
@@ -394,18 +370,15 @@ class AppContext:
 
     @property
     def session(self) -> SessionMixin:
-        """The session object associated with this context. Accessed through
-        :data:`.session`. Only available in request contexts, otherwise raises
-        :exc:`RuntimeError`. Accessing this sets :attr:`.SessionMixin.accessed`.
+        """与此上下文关联的会话对象。通过 :data:`.session` 访问。仅在请求上下文中可用，
+        否则引发 :exc:`RuntimeError` 。访问此集 :attr:`.SessionMixin.accessed` 。
         """
         session = self._get_session()
         session.accessed = True
         return session
 
     def match_request(self) -> None:
-        """Apply routing to the current request, storing either the matched
-        endpoint and args, or a routing exception.
-        """
+        """将路由应用于当前请求，存储匹配的端点和参数，或者存储路由异常。"""
         try:
             result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]
         except HTTPException as e:
@@ -414,16 +387,13 @@ class AppContext:
             self._request.url_rule, self._request.view_args = result  # type: ignore[union-attr]
 
     def push(self) -> None:
-        """Push this context so that it is the active context. If this is a
-        request context, calls :meth:`match_request` to perform routing with
-        the context active.
+        """推送此上下文，使其成为活动上下文。如果这是一个请求上下文，则调用
+        :meth:`match_request` 以在上下文处于活动状态时执行路由。
 
-        Typically, this is not used directly. Instead, use a ``with`` block
-        to manage the context.
+        通常，这不直接使用。相反，使用 ``with`` 块来管理上下文。
 
-        In some situations, such as streaming or testing, the context may be
-        pushed multiple times. It will only trigger matching and signals if it
-        is not currently pushed.
+        在某些情况下，例如流式传输或测试，上下文可能会被推送多次。如果当前没有推送，它只
+        会触发匹配和信号。
         """
         self._push_count += 1
 
@@ -434,33 +404,26 @@ class AppContext:
         appcontext_pushed.send(self.app, _async_wrapper=self.app.ensure_sync)
 
         if self._request is not None:
-            # Open the session at the moment that the request context is available.
-            # This allows a custom open_session method to use the request context.
+            # 在请求上下文可用时打开会话。这允许自定义 open_session 方法使用请求上下文。
             self._get_session()
 
-            # Match the request URL after loading the session, so that the
-            # session is available in custom URL converters.
+            # 加载会话后匹配请求 URL，以便会话在自定义 URL 转换器中可用。
             if self.url_adapter is not None:
                 self.match_request()
 
     def pop(self, exc: BaseException | None = None) -> None:
-        """Pop this context so that it is no longer the active context. Then
-        call teardown functions and signals.
+        """弹出此上下文，使其不再是活动上下文。然后调用清理函数和信号。
 
-        Typically, this is not used directly. Instead, use a ``with`` block
-        to manage the context.
+        通常，这不直接使用。相反，使用 ``with`` 块来管理上下文。
 
-        This context must currently be the active context, otherwise a
-        :exc:`RuntimeError` is raised. In some situations, such as streaming or
-        testing, the context may have been pushed multiple times. It will only
-        trigger cleanup once it has been popped as many times as it was pushed.
-        Until then, it will remain the active context.
+        该上下文当前必须是活动上下文，否则会引发 :exc:`RuntimeError` 。在某些情况下，例
+        如流式传输或测试，上下文可能已被推送多次。只有当它被弹出的次数与被推送的次数相同
+        时，它才会触发清理。在那之前，它将仍然是活动上下文。
 
-        :param exc: An unhandled exception that was raised while the context was
-            active. Passed to teardown functions.
+        :param exc: 上下文处于活动状态时引发的未处理的异常。传递给清理函数。
 
         .. versionchanged:: 0.9
-            Added the ``exc`` argument.
+            添加了 ``exc`` 参数。
         """
         if self._cv_token is None:
             raise RuntimeError(f"Cannot pop this context ({self!r}), it is not pushed.")

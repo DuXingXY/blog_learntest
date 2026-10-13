@@ -97,10 +97,10 @@ name and a dot, and by wrapping `view_func` in a `LazyView` as needed.  ::
         for url_rule in url_rules:
             app.add_url_rule(url_rule, view_func=view, **options)
 
-    # add a single route to the index view
+    # 将单个路由添加到索引视图
     url('views.index', ['/'])
 
-    # add two routes to a single function endpoint
+    # 将两个路由添加到单个函数端点
     url_rules = ['/user/','/user/<username>']
     url('views.user', url_rules)
 

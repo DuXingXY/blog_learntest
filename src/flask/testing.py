@@ -25,25 +25,19 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 
 class EnvironBuilder(werkzeug.test.EnvironBuilder):
-    """An :class:`~werkzeug.test.EnvironBuilder`, that takes defaults from the
-    application.
+    """:class:`~werkzeug.test.EnvironBuilder` ，从应用程序获取默认值。
 
-    :param app: The Flask application to configure the environment from.
-    :param path: URL path being requested.
-    :param base_url: Base URL where the app is being served, which
-        ``path`` is relative to. If not given, built from
-        :data:`PREFERRED_URL_SCHEME`, ``subdomain``,
-        :data:`SERVER_NAME`, and :data:`APPLICATION_ROOT`.
-    :param subdomain: Subdomain name to append to :data:`SERVER_NAME`.
-    :param url_scheme: Scheme to use instead of
-        :data:`PREFERRED_URL_SCHEME`.
-    :param json: If given, this is serialized as JSON and passed as
-        ``data``. Also defaults ``content_type`` to
-        ``application/json``.
-    :param args: other positional arguments passed to
-        :class:`~werkzeug.test.EnvironBuilder`.
-    :param kwargs: other keyword arguments passed to
-        :class:`~werkzeug.test.EnvironBuilder`.
+    :param app: 用于配置环境的 Flask 应用程序。
+    :param path: 正在请求 URL 路径。
+    :param base_url: 提供应用程序的基础 URL，与 ``path`` 相关。如果未给出，则从
+        :data:`PREFERRED_URL_SCHEME` 、 ``subdomain`` 、 :data:`SERVER_NAME` 和
+        :data:`APPLICATION_ROOT` 构建。
+    :param subdomain: 要附加到 :data:`SERVER_NAME` 的子域名。
+    :param url_scheme: 使用方案代替 :data:`PREFERRED_URL_SCHEME` 。
+    :param json: 如果给定，则将其序列化为 JSON 并作为 ``data`` 传递。还将
+        ``content_type`` 默认为 ``application/json`` 。
+    :param args: 其他位置参数传递给 :class:`~werkzeug.test.EnvironBuilder` 。
+    :param kwargs: 其他关键字参数传递给 :class:`~werkzeug.test.EnvironBuilder` 。
     """
 
     def __init__(
@@ -86,10 +80,9 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
         super().__init__(path, base_url, *args, **kwargs)
 
     def json_dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
-        """Serialize ``obj`` to a JSON-formatted string.
+        """将 ``obj`` 序列化为 JSON 格式的字符串。
 
-        The serialization will be configured according to the config associated
-        with this EnvironBuilder's ``app``.
+        序列化将根据与此 EnvironBuilder 的 ``app`` 关联的配置进行配置。
         """
         return self.app.json.dumps(obj, **kwargs)
 
@@ -107,17 +100,15 @@ def _get_werkzeug_version() -> str:
 
 
 class FlaskClient(Client):
-    """Works like a regular Werkzeug test client, with additional behavior for
-    Flask. Can defer the cleanup of the request context until the end of a
-    ``with`` block. For general information about how to use this class refer to
-    :class:`werkzeug.test.Client`.
+    """与常规 Werkzeug 测试客户端类似，但具有 Flask 的附加行为。可以将请求上下文的清理推
+    迟到 ``with`` 块结束时。有关如何使用此类的一般信息，请参阅
+    :class:`werkzeug.test.Client` 。
 
     .. versionchanged:: 0.12
-       `app.test_client()` includes preset default environment, which can be
-       set after instantiation of the `app.test_client()` object in
-       `client.environ_base`.
+       `app.test_client()` 包含预设的默认环境，可以在 `client.environ_base` 中实例化
+       `app.test_client()` 对象后设置。
 
-    Basic usage is outlined in the :doc:`/testing` chapter.
+    :doc:`/testing` 章节中概述了基本用法。
     """
 
     application: Flask
@@ -136,21 +127,17 @@ class FlaskClient(Client):
     def session_transaction(
         self, *args: t.Any, **kwargs: t.Any
     ) -> t.Iterator[SessionMixin]:
-        """When used in combination with a ``with`` statement this opens a
-        session transaction.  This can be used to modify the session that
-        the test client uses.  Once the ``with`` block is left the session is
-        stored back.
+        """当与 ``with`` 语句结合使用时，这将打开一个会话事务。  这可用于修改测试客户端
+        使用的会话。  一旦离开 ``with`` 块，会话就会被存储回来。
 
         ::
 
             with client.session_transaction() as session:
                 session['value'] = 42
 
-        Internally this is implemented by going through a temporary test
-        request context and since session handling could depend on
-        request variables this function accepts the same arguments as
-        :meth:`~flask.Flask.test_request_context` which are directly
-        passed through.
+        在内部，这是通过遍历临时测试请求上下文来实现的，并且由于会话处理可能依赖于请求变
+        量，因此该函数接受与直接传递的 :meth:`~flask.Flask.test_request_context` 相同的
+        参数。
         """
         if self._cookies is None:
             raise TypeError(
@@ -224,12 +211,10 @@ class FlaskClient(Client):
                 request = copy(args[0])
                 request.environ = self._copy_environ(request.environ)
         else:
-            # request is None
+            # 请求是 None
             request = self._request_from_builder_args(args, kwargs)
 
-        # Pop any previously preserved contexts. This prevents contexts
-        # from being preserved across redirects or multiple requests
-        # within a single block.
+        # 弹出任何以前保留的上下文。这可以防止跨重定向或单个块中的多个请求保留上下文。
         self._context_stack.close()
 
         response = super().open(
@@ -239,7 +224,7 @@ class FlaskClient(Client):
         )
         response.json_module = self.application.json  # type: ignore[assignment]
 
-        # Re-push contexts that were preserved during the request.
+        # 重新推送请求期间保留的上下文。
         for cm in self._new_contexts:
             self._context_stack.enter_context(cm)
 
@@ -263,9 +248,8 @@ class FlaskClient(Client):
 
 
 class FlaskCliRunner(CliRunner):
-    """A :class:`~click.testing.CliRunner` for testing a Flask app's
-    CLI commands. Typically created using
-    :meth:`~flask.Flask.test_cli_runner`. See :ref:`testing-cli`.
+    """:class:`~click.testing.CliRunner` 用于测试 Flask 应用程序的 CLI 命令。通常使用
+    :meth:`~flask.Flask.test_cli_runner` 创建。参见 :ref:`testing-cli` 。
     """
 
     def __init__(self, app: Flask, **kwargs: t.Any) -> None:
@@ -275,19 +259,17 @@ class FlaskCliRunner(CliRunner):
     def invoke(  # type: ignore
         self, cli: t.Any = None, args: t.Any = None, **kwargs: t.Any
     ) -> Result:
-        """Invokes a CLI command in an isolated environment. See
-        :meth:`CliRunner.invoke <click.testing.CliRunner.invoke>` for
-        full method documentation. See :ref:`testing-cli` for examples.
+        """在隔离环境中调用 CLI 命令。有关完整方法文档，请参阅
+        :meth:`CliRunner.invoke <click.testing.CliRunner.invoke>` 。有关示例，请参阅
+        :ref:`testing-cli` 。
 
-        If the ``obj`` argument is not given, passes an instance of
-        :class:`~flask.cli.ScriptInfo` that knows how to load the Flask
-        app being tested.
+        如果未给出 ``obj`` 参数，则传递知道如何加载正在测试的 Flask 应用程序的
+        :class:`~flask.cli.ScriptInfo` 实例。
 
-        :param cli: Command object to invoke. Default is the app's
-            :attr:`~flask.app.Flask.cli` group.
-        :param args: List of strings to invoke the command with.
+        :param cli: 要调用的命令对象。默认是应用程序的 :attr:`~flask.app.Flask.cli` 组。
+        :param args: 用于调用命令的字符串列表。
 
-        :return: a :class:`~click.testing.Result` object.
+        :return: 一个 :class:`~click.testing.Result` 对象。
         """
         if cli is None:
             cli = self.app.cli

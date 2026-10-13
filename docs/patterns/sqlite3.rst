@@ -54,7 +54,7 @@ code outside a request context you can use it in a Python shell by opening
 the application context by hand::
 
     with app.app_context():
-        # now you can use get_db()
+        # 现在你可以使用 get_db()
 
 
 Easy Querying
@@ -79,13 +79,13 @@ This will make the sqlite3 module return dicts for this database connection, whi
 
 This would use Row objects rather than dicts to return the results of queries. These are ``namedtuple`` s, so we can access them either by index or by key. For example, assuming we have a ``sqlite3.Row`` called ``r`` for the rows ``id``, ``FirstName``, ``LastName``, and ``MiddleInitial``::
 
-    >>> # You can get values based on the row's name
+    >>> # 您可以根据行名称获取值
     >>> r['FirstName']
     John
-    >>> # Or, you can get them based on index
+    >>> # 或者，您可以根据索引获取它们
     >>> r[1]
     John
-    # Row objects are also iterable:
+    # Row 对象也是可迭代的：
     >>> for value in r:
     ...     print(value)
     1

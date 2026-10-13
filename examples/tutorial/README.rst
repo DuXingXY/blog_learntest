@@ -13,11 +13,11 @@ Install
 you're reading.** You probably want the latest tagged version, but the
 default Git version is the main branch. ::
 
-    # clone the repository
+    # 克隆存储库
     $ git clone https://github.com/pallets/flask
     $ cd flask
-    # checkout the correct version
-    $ git tag  # shows the tagged versions
+    # 检查正确的版本
+    $ git tag  # 显示标记的版本
     $ git checkout latest-tag-found-above
     $ cd examples/tutorial
 
@@ -65,4 +65,4 @@ Run with coverage report::
 
     $ coverage run -m pytest
     $ coverage report
-    $ coverage html  # open htmlcov/index.html in a browser
+    $ coverage html  # 在浏览器中打开 htmlcov/index.html

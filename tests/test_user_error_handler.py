@@ -210,12 +210,12 @@ def test_default_error_handler():
     assert c.get("/bp/forbidden").data == b"bp-forbidden"
     assert c.get("/undefined").data == b"default"
     assert c.get("/forbidden").data == b"forbidden"
-    # Don't handle RequestRedirect raised when adding slash.
+    # 不处理添加斜杠时引发的 RequestRedirect。
     assert c.get("/slash", follow_redirects=True).data == b"slash"
 
 
 class TestGenericHandlers:
-    """Test how very generic handlers are dispatched to."""
+    """测试如何分派非常通用的处理程序。"""
 
     class Custom(Exception):
         pass
@@ -251,9 +251,8 @@ class TestGenericHandlers:
 
     @pytest.mark.parametrize("to_handle", (InternalServerError, 500))
     def test_handle_class_or_code(self, app, client, to_handle):
-        """``InternalServerError`` and ``500`` are aliases, they should
-        have the same behavior. Both should only receive
-        ``InternalServerError``, which might wrap another error.
+        """``InternalServerError`` 和 ``500`` 是别名，它们应该具有相同的行为。两者都应该
+        只接收 ``InternalServerError`` ，这可能会包装另一个错误。
         """
 
         @app.errorhandler(to_handle)
@@ -267,8 +266,8 @@ class TestGenericHandlers:
         assert client.get("/raise").data == b"direct InternalServerError"
 
     def test_handle_generic_http(self, app, client):
-        """``HTTPException`` should only receive ``HTTPException``
-        subclasses. It will receive ``404`` routing exceptions.
+        """``HTTPException`` 应该只接收 ``HTTPException`` 子类。它将接收 ``404`` 路由异
+        常。
         """
 
         @app.errorhandler(HTTPException)
@@ -281,9 +280,7 @@ class TestGenericHandlers:
         assert client.get("/not-found").data == b"404"
 
     def test_handle_generic(self, app, client):
-        """Generic ``Exception`` will handle all exceptions directly,
-        including ``HTTPExceptions``.
-        """
+        """通用 ``Exception`` 将直接处理所有异常，包括 ``HTTPExceptions`` 。"""
 
         @app.errorhandler(Exception)
         def handle_exception(e):

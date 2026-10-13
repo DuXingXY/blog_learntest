@@ -29,7 +29,7 @@ Create a virtualenv, install your application, then install
     $ cd hello-app
     $ python -m venv .venv
     $ . .venv/bin/activate
-    $ pip install .  # install your application
+    $ pip install .  # 安装您的应用程序
     $ pip install waitress
 
 
@@ -44,10 +44,10 @@ pattern, use ``--call {module}:{factory}`` instead.
 
 .. code-block:: text
 
-    # equivalent to 'from hello import app'
+    # 相当于 'from hello import app'
     $ waitress-serve --host 127.0.0.1 hello:app
 
-    # equivalent to 'from hello import create_app; create_app()'
+    # 相当于 'from hello import create_app; create_app()'
     $ waitress-serve --host 127.0.0.1 --call hello:create_app
 
     Serving on http://127.0.0.1:8080

@@ -14,13 +14,11 @@ http_method_funcs = frozenset(
 
 
 class View:
-    """Subclass this class and override :meth:`dispatch_request` to
-    create a generic class-based view. Call :meth:`as_view` to create a
-    view function that creates an instance of the class with the given
-    arguments and calls its ``dispatch_request`` method with any URL
-    variables.
+    """对该类进行子类化并覆盖 :meth:`dispatch_request` 以创建通用的基于类的视图。调用
+    :meth:`as_view` 创建一个视图函数，该函数使用给定参数创建类的实例，并使用任何 URL 变
+    量调用其 ``dispatch_request`` 方法。
 
-    See :doc:`views` for a detailed guide.
+    有关详细指南，请参阅 :doc:`views` 。
 
     .. code-block:: python
 
@@ -34,51 +32,41 @@ class View:
             "/hello/<name>", view_func=Hello.as_view("hello")
         )
 
-    Set :attr:`methods` on the class to change what methods the view
-    accepts.
+    在类上设置 :attr:`methods` 以更改视图接受的方法。
 
-    Set :attr:`decorators` on the class to apply a list of decorators to
-    the generated view function. Decorators applied to the class itself
-    will not be applied to the generated view function!
+    在类上设置 :attr:`decorators` 以将装饰器列表应用于生成的视图函数。应用于类本身的装饰
+    器不会应用于生成的视图函数！
 
-    Set :attr:`init_every_request` to ``False`` for efficiency, unless
-    you need to store request-global data on ``self``.
+    将 :attr:`init_every_request` 设置为 ``False`` 以提高效率，除非您需要在 ``self`` 上
+    存储请求全局数据。
     """
 
-    #: The methods this view is registered for. Uses the same default
-    #: (``["GET", "HEAD", "OPTIONS"]``) as ``route`` and
-    #: ``add_url_rule`` by default.
+    #: 该视图注册的方法。默认情况下使用与 ``route`` 和 ``add_url_rule`` 相同的默认值 (
+    #: ``["GET", "HEAD", "OPTIONS"]`` )。
     methods: t.ClassVar[t.Collection[str] | None] = None
 
-    #: Control whether the ``OPTIONS`` method is handled automatically.
-    #: Uses the same default (``True``) as ``route`` and
-    #: ``add_url_rule`` by default.
+    #: 控制是否自动处理 ``OPTIONS`` 方法。默认情况下使用与 ``route`` 和 ``add_url_rule``
+    #: 相同的默认值 ( ``True`` )。
     provide_automatic_options: t.ClassVar[bool | None] = None
 
-    #: A list of decorators to apply, in order, to the generated view
-    #: function. Remember that ``@decorator`` syntax is applied bottom
-    #: to top, so the first decorator in the list would be the bottom
-    #: decorator.
+    #: 按顺序应用于生成的视图函数的装饰器列表。请记住， ``@decorator`` 语法是从下到上应
+    #: 用的，因此列表中的第一个装饰器将是底部装饰器。
     #:
     #: .. versionadded:: 0.8
     decorators: t.ClassVar[list[t.Callable[..., t.Any]]] = []
 
-    #: Create a new instance of this view class for every request by
-    #: default. If a view subclass sets this to ``False``, the same
-    #: instance is used for every request.
+    #: 默认情况下，为每个请求创建此视图类的新实例。如果视图子类将其设置为 ``False`` ，则
+    #: 每个请求都会使用相同的实例。
     #:
-    #: A single instance is more efficient, especially if complex setup
-    #: is done during init. However, storing data on ``self`` is no
-    #: longer safe across requests, and :data:`~flask.g` should be used
-    #: instead.
+    #: 单个实例效率更高，特别是在 init 期间完成复杂的设置时。但是，在 ``self`` 上存储数
+    #: 据在跨请求时不再安全，应改用 :data:`~flask.g` 。
     #:
     #: .. versionadded:: 2.2
     init_every_request: t.ClassVar[bool] = True
 
     def dispatch_request(self) -> ft.ResponseReturnValue:
-        """The actual view function behavior. Subclasses must override
-        this and return a valid response. Any variables from the URL
-        rule are passed as keyword arguments.
+        """实际的视图函数行为。子类必须重写它并返回有效的响应。 URL 规则中的任何变量都作
+        为关键字参数传递。
         """
         raise NotImplementedError()
 
@@ -86,20 +74,17 @@ class View:
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
     ) -> ft.RouteCallable:
-        """Convert the class into a view function that can be registered
-        for a route.
+        """将类转换为可以注册路由的视图函数。
 
-        By default, the generated view will create a new instance of the
-        view class for every request and call its
-        :meth:`dispatch_request` method. If the view class sets
-        :attr:`init_every_request` to ``False``, the same instance will
-        be used for every request.
+        默认情况下，生成的视图将为每个请求创建视图类的新实例并调用其
+        :meth:`dispatch_request` 方法。如果视图类将 :attr:`init_every_request` 设置为
+        ``False`` ，则每个请求都将使用相同的实例。
 
-        Except for ``name``, all other arguments passed to this method
-        are forwarded to the view class ``__init__`` method.
+        除了 ``name`` 之外，传递给此方法的所有其他参数都将转发到视图类 ``__init__`` 方法
+        。
 
         .. versionchanged:: 2.2
-            Added the ``init_every_request`` class attribute.
+            添加了 ``init_every_request`` 类属性。
         """
         if cls.init_every_request:
 
@@ -121,11 +106,9 @@ class View:
             for decorator in cls.decorators:
                 view = decorator(view)
 
-        # We attach the view class to the view function for two reasons:
-        # first of all it allows us to easily figure out what class-based
-        # view this thing came from, secondly it's also used for instantiating
-        # the view class so you can actually replace it with something else
-        # for testing purposes and debugging.
+        # 我们将视图类附加到视图函数有两个原因：首先，它使我们能够轻松地弄清楚这个东西来
+        # 自哪个基于类的视图，其次，它还用于实例化视图类，因此您实际上可以用其他东西替换
+        # 它以进行测试和调试。
         view.view_class = cls  # type: ignore
         view.__name__ = name
         view.__doc__ = cls.__doc__
@@ -136,16 +119,14 @@ class View:
 
 
 class MethodView(View):
-    """Dispatches request methods to the corresponding instance methods.
-    For example, if you implement a ``get`` method, it will be used to
-    handle ``GET`` requests.
+    """将请求方法分派给相应的实例方法。例如，如果您实现 ``get`` 方法，它将用于处理
+    ``GET`` 请求。
 
-    This can be useful for defining a REST API.
+    这对于定义 REST API 很有用。
 
-    :attr:`methods` is automatically set based on the methods defined on
-    the class.
+    :attr:`methods` 根据类上定义的方法自动设置。
 
-    See :doc:`views` for a detailed guide.
+    有关详细指南，请参阅 :doc:`views` 。
 
     .. code-block:: python
 
@@ -182,8 +163,7 @@ class MethodView(View):
     def dispatch_request(self, **kwargs: t.Any) -> ft.ResponseReturnValue:
         meth = getattr(self, request.method.lower(), None)
 
-        # If the request method is HEAD and we don't have a handler for it
-        # retry with GET.
+        # 如果请求方法是 HEAD 并且我们没有处理程序，请使用 GET 重试。
         if meth is None and request.method == "HEAD":
             meth = getattr(self, "get", None)
 

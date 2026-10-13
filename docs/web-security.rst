@@ -239,7 +239,7 @@ Specifying ``Expires`` or ``Max-Age`` options, will remove the cookie after
 the given time, or the current time plus the age, respectively. If neither
 option is set, the cookie will be removed when the browser is closed. ::
 
-    # cookie expires after 10 minutes
+    # cookie 10 分钟后过期
     response.set_cookie('snakes', '3', max_age=600)
 
 For the session cookie, if :attr:`session.permanent <flask.session.permanent>`

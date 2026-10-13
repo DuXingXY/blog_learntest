@@ -9,10 +9,10 @@ from flask.helpers import get_debug_flag
 
 
 class FakePath:
-    """Fake object to represent a ``PathLike object``.
+    """代表 ``PathLike object`` 的假对象。
 
-    This represents a ``pathlib.Path`` object in python 3.
-    See: https://www.python.org/dev/peps/pep-0519/
+    这表示 python 3 中的 ``pathlib.Path`` 对象。请参阅：
+    https://www.python.org/dev/peps/pep-0519/
     """
 
     def __init__(self, path):
@@ -42,27 +42,27 @@ class TestSendfile:
             assert rv.data == expect
 
     def test_static_file(self, app, req_ctx):
-        # Default max_age is None.
+        # 默认 max_age 是 None。
 
-        # Test with static file handler.
+        # 使用静态文件处理程序进行测试。
         with app.send_static_file("index.html") as rv:
             assert rv.cache_control.max_age is None
 
-        # Test with direct use of send_file.
+        # 直接使用 send_file 进行测试。
         with flask.send_file("static/index.html") as rv:
             assert rv.cache_control.max_age is None
 
         app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 3600
 
-        # Test with static file handler.
+        # 使用静态文件处理程序进行测试。
         with app.send_static_file("index.html") as rv:
             assert rv.cache_control.max_age == 3600
 
-        # Test with direct use of send_file.
+        # 直接使用 send_file 进行测试。
         with flask.send_file("static/index.html") as rv:
             assert rv.cache_control.max_age == 3600
 
-        # Test with pathlib.Path.
+        # 使用 pathlib.Path 进行测试。
         with app.send_static_file(FakePath("index.html")) as rv:
             assert rv.cache_control.max_age == 3600
 
@@ -73,11 +73,11 @@ class TestSendfile:
         app = StaticFileApp(__name__)
 
         with app.test_request_context():
-            # Test with static file handler.
+            # 使用静态文件处理程序进行测试。
             with app.send_static_file("index.html") as rv:
                 assert rv.cache_control.max_age == 10
 
-            # Test with direct use of send_file.
+            # 直接使用 send_file 进行测试。
             with flask.send_file("static/index.html") as rv:
                 assert rv.cache_control.max_age == 10
 
@@ -112,11 +112,11 @@ class TestUrlFor:
     def test_url_for_with_scheme_not_external(self, app, req_ctx):
         app.add_url_rule("/", endpoint="index")
 
-        # Implicit external with scheme.
+        # 隐式外部与方案。
         url = flask.url_for("index", _scheme="https")
         assert url == "https://localhost/"
 
-        # Error when external=False with scheme
+        # 当 external=False 使用方案时出错
         with pytest.raises(ValueError):
             flask.url_for("index", _scheme="https", _external=False)
 
@@ -207,14 +207,12 @@ def test_abort_with_app(app):
 
 
 class TestNoImports:
-    """Test Flasks are created without import.
+    """测试在不执行导入的情况下创建 Flask 实例。
 
-    Avoiding ``__import__`` helps create Flask instances where there are errors
-    at import time.  Those runtime errors will be apparent to the user soon
-    enough, but tools which build Flask instances meta-programmatically benefit
-    from a Flask which does not ``__import__``.  Instead of importing to
-    retrieve file paths or metadata on a module or package, use the pkgutil and
-    imp modules in the Python standard library.
+    避免 ``__import__`` 有助于在导入时出现错误的情况下创建 Flask 实例。  这些运行时错误
+    很快就会对用户显而易见，但是以元编程方式构建 Flask 实例的工具可以从 Flask 中受益，而
+    Flask 则不会 ``__import__`` 。  不要通过导入来检索模块或包上的文件路径或元数据，而是
+    使用 Python 标准库中的 pkgutil 和 imp 模块。
     """
 
     def test_name_with_import_error(self, modules_tmp_path):
@@ -309,14 +307,14 @@ class TestStreaming:
 
             return flask.Response(gen())
 
-        # response is closed without reading stream
+        # 响应在未读取流的情况下关闭
         client.get().close()
 
-        # response stream is read
+        # 响应流被读取
         with client.get() as rv:
             assert rv.text == "flask"
 
-        # same as above, but with client context preservation
+        # 与上面相同，但保留了客户端上下文
         with client:
             client.get().close()
 

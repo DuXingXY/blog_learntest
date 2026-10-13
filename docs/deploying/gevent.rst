@@ -31,7 +31,7 @@ Create a virtualenv, install your application, then install ``gevent``.
     $ cd hello-app
     $ python -m venv .venv
     $ . .venv/bin/activate
-    $ pip install .  # install your application
+    $ pip install .  # 安装您的应用程序
     $ pip install gevent
 
 

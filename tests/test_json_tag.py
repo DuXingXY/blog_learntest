@@ -41,7 +41,7 @@ def test_duplicate_tag():
 
 
 def test_custom_tag():
-    class Foo:  # noqa: B903, for Python2 compatibility
+    class Foo:  # noqa: B903, 保持 Python 2 兼容性
         def __init__(self, data):
             self.data = data
 

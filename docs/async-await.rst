@@ -102,7 +102,7 @@ the decorated function,
     def extension(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            ...  # Extension logic
+            ...  # 扩展逻辑
             return current_app.ensure_sync(func)(*args, **kwargs)
 
         return wrapper

@@ -1,8 +1,7 @@
 name: Lock inactive closed issues
-# Lock closed issues that have not received any further activity for two weeks.
-# This does not close open issues, only humans may do that. It is easier to
-# respond to new issues with fresh examples rather than continuing discussions
-# on old issues.
+# 锁定已关闭且两周内没有新活动的议题。
+# 此流程不会关闭仍然开放的议题，关闭操作由维护者执行。
+# 相比继续讨论旧议题，使用新的示例回应新议题更便于处理。
 
 on:
   schedule:

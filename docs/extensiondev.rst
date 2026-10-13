@@ -171,10 +171,10 @@ name as a prefix, or as a namespace.
 
 .. code-block:: python
 
-    # an internal prefix with the extension name
+    # 带有扩展名的内部前缀
     g._hello_user_id = 2
 
-    # or an internal prefix as a namespace
+    # 或作为命名空间的内部前缀
     from types import SimpleNamespace
     g._hello = SimpleNamespace()
     g._hello.user_id = 2

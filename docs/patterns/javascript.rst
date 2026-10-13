@@ -112,7 +112,7 @@ can be used with a ``then()`` callback chain.
     fetch(room_url)
         .then(response => response.json())
         .then(data => {
-            // data is a parsed JSON object
+            // data 是一个已解析的 JSON 对象
         })
 
 To send data, use a data method such as POST, and pass the ``body``

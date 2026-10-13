@@ -44,9 +44,9 @@ Here's the example :file:`database.py` module for your application::
     Base.query = db_session.query_property()
 
     def init_db():
-        # import all modules here that might define models so that
-        # they will be registered properly on the metadata.  Otherwise
-        # you will have to import them first before calling init_db()
+        # 在这里导入所有可能定义模型的模块，以便
+        # 它们将在元数据上正确注册。  否则
+        # 在调用 init_db() 之前你必须先导入它们
         import yourapplication.models
         Base.metadata.create_all(bind=engine)
 

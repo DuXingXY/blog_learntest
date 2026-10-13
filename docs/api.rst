@@ -78,9 +78,9 @@ To access the current session you can use the :data:`.session` proxy.
 
     .. code-block:: python
 
-          # appending to a list is not detected
+          # 未检测到附加到列表
           session["numbers"].append(42)
-          # so mark it as modified yourself
+          # 所以将其标记为自己修改
           session.modified = True
 
     The session is persisted across requests using a cookie. By default the
@@ -669,7 +669,7 @@ Full example::
 
     def index():
         if request.method == 'OPTIONS':
-            # custom options handling here
+            # 自定义选项在这里处理
             ...
         return 'Hello World!'
     index.provide_automatic_options = False

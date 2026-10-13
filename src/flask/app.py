@@ -80,8 +80,7 @@ def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 
-# Other methods may call the overridden method with the new ctx arg. Remove it
-# and call the method with the remaining args.
+# 其他方法可能会使用新的 ctx 参数调用重写的方法。删除它并使用剩余的参数调用该方法。
 def remove_ctx(f: F) -> F:
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
@@ -92,8 +91,8 @@ def remove_ctx(f: F) -> F:
     return update_wrapper(wrapper, f)  # type: ignore[return-value]
 
 
-# The overridden method may call super().base_method without the new ctx arg.
-# Add it to the args for the call.
+# 重写的方法可能会在没有新 ctx 参数的情况下调用 super().base_method 。将其添加到调用的参
+# 数中。
 def add_ctx(f: F) -> F:
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
@@ -107,100 +106,75 @@ def add_ctx(f: F) -> F:
 
 
 class Flask(App):
-    """The flask object implements a WSGI application and acts as the central
-    object.  It is passed the name of the module or package of the
-    application.  Once it is created it will act as a central registry for
-    the view functions, the URL rules, template configuration and much more.
+    """Flask 对象实现 WSGI 应用程序并充当中心对象。  它传递应用程序的模块或包的名称。
+    一旦创建，它将充当视图函数、URL 规则、模板配置等的中央注册表。
 
-    The name of the package is used to resolve resources from inside the
-    package or the folder the module is contained in depending on if the
-    package parameter resolves to an actual python package (a folder with
-    an :file:`__init__.py` file inside) or a standard module (just a ``.py`` file).
+    包的名称用于解析包内部或模块所在文件夹中的资源，具体取决于包参数是否解析为实际的
+    python 包（内部包含 :file:`__init__.py` 文件的文件夹）或标准模块（只是一个 ``.py``
+    文件）。
 
-    For more information about resource loading, see :func:`open_resource`.
+    有关资源加载的更多信息，请参阅 :func:`open_resource` 。
 
-    Usually you create a :class:`Flask` instance in your main module or
-    in the :file:`__init__.py` file of your package like this::
+    通常，您在主模块或包的 :file:`__init__.py` 文件中创建一个 :class:`Flask` 实例，如下
+    所示::
 
         from flask import Flask
         app = Flask(__name__)
 
-    .. admonition:: About the First Parameter
+    .. admonition:: 关于第一个参数
 
-        The idea of the first parameter is to give Flask an idea of what
-        belongs to your application.  This name is used to find resources
-        on the filesystem, can be used by extensions to improve debugging
-        information and a lot more.
+        第一个参数的想法是让 Flask 了解什么属于您的应用程序。  该名称用于查找文件系统上
+        的资源，可以由扩展使用来改进调试信息等等。
 
-        So it's important what you provide there.  If you are using a single
-        module, `__name__` is always the correct value.  If you however are
-        using a package, it's usually recommended to hardcode the name of
-        your package there.
+        所以你在那里提供什么很重要。  如果您使用单个模块， `__name__` 始终是正确的值。
+        但是，如果您正在使用包，通常建议在此处硬编码包的名称。
 
-        For example if your application is defined in :file:`yourapplication/app.py`
-        you should create it with one of the two versions below::
+        例如，如果您的应用程序是在 :file:`yourapplication/app.py` 中定义的，您应该使用以
+        下两个版本之一创建它::
 
             app = Flask('yourapplication')
             app = Flask(__name__.split('.')[0])
 
-        Why is that?  The application will work even with `__name__`, thanks
-        to how resources are looked up.  However it will make debugging more
-        painful.  Certain extensions can make assumptions based on the
-        import name of your application.  For example the Flask-SQLAlchemy
-        extension will look for the code in your application that triggered
-        an SQL query in debug mode.  If the import name is not properly set
-        up, that debugging information is lost.  (For example it would only
-        pick up SQL queries in `yourapplication.app` and not
-        `yourapplication.views.frontend`)
+        这是为什么呢？  由于查找资源的方式，该应用程序甚至可以使用 `__name__` 运行。  然
+        而，这会让调试变得更加痛苦。  某些扩展可以根据应用程序的导入名称进行假设。  例如
+        ，Flask-SQLAlchemy 扩展将在应用程序中查找在调试模式下触发 SQL 查询的代码。  如果
+        导入名称设置不正确，调试信息就会丢失。  （例如，它只会在 `yourapplication.app`
+        中拾取 SQL 查询，而不会在 `yourapplication.views.frontend` 中拾取）
 
     .. versionadded:: 0.7
-       The `static_url_path`, `static_folder`, and `template_folder`
-       parameters were added.
+       添加了 `static_url_path` 、 `static_folder` 和 `template_folder` 参数。
 
     .. versionadded:: 0.8
-       The `instance_path` and `instance_relative_config` parameters were
-       added.
+       添加了 `instance_path` 和 `instance_relative_config` 参数。
 
     .. versionadded:: 0.11
-       The `root_path` parameter was added.
+       添加了 `root_path` 参数。
 
     .. versionadded:: 1.0
-       The ``host_matching`` and ``static_host`` parameters were added.
+       添加了 ``host_matching`` 和 ``static_host`` 参数。
 
     .. versionadded:: 1.0
-       The ``subdomain_matching`` parameter was added. Subdomain
-       matching needs to be enabled manually now. Setting
-       :data:`SERVER_NAME` does not implicitly enable it.
+       添加了 ``subdomain_matching`` 参数。现在需要手动启用子域匹配。设置
+       :data:`SERVER_NAME` 不会隐式启用它。
 
-    :param import_name: the name of the application package
-    :param static_url_path: can be used to specify a different path for the
-                            static files on the web.  Defaults to the name
-                            of the `static_folder` folder.
-    :param static_folder: The folder with static files that is served at
-        ``static_url_path``. Relative to the application ``root_path``
-        or an absolute path. Defaults to ``'static'``.
-    :param static_host: the host to use when adding the static route.
-        Defaults to None. Required when using ``host_matching=True``
-        with a ``static_folder`` configured.
-    :param host_matching: set ``url_map.host_matching`` attribute.
-        Defaults to False.
-    :param subdomain_matching: consider the subdomain relative to
-        :data:`SERVER_NAME` when matching routes. Defaults to False.
-    :param template_folder: the folder that contains the templates that should
-                            be used by the application.  Defaults to
-                            ``'templates'`` folder in the root path of the
-                            application.
-    :param instance_path: An alternative instance path for the application.
-                          By default the folder ``'instance'`` next to the
-                          package or module is assumed to be the instance
-                          path.
-    :param instance_relative_config: if set to ``True`` relative filenames
-                                     for loading the config are assumed to
-                                     be relative to the instance path instead
-                                     of the application root.
-    :param root_path: The path to the root of the application files.
-        This should only be set manually when it can't be detected
-        automatically, such as for namespace packages.
+    :param import_name: 应用程序包的名称
+    :param static_url_path: 可用于为网络上的静态文件指定不同的路径。  默认为
+        `static_folder` 文件夹的名称。
+    :param static_folder: 包含在 ``static_url_path`` 处提供的静态文件的文件夹。相对于应
+        用程序 ``root_path`` 或绝对路径。默认为 ``'static'`` 。
+    :param static_host: 添加静态路由时要使用的主机。默认为 None。在配置了
+        ``static_folder`` 的情况下使用 ``host_matching=True`` 时需要。
+    :param host_matching: 设置 ``url_map.host_matching`` 属性。默认为 False。
+    :param subdomain_matching: 匹配路由时考虑相对于 :data:`SERVER_NAME` 的子域。默认为
+        False。
+    :param template_folder: 包含应用程序应使用的模板的文件夹。  默认为应用程序根路径中的
+        ``'templates'`` 文件夹。
+    :param instance_path: 应用程序的替代实例路径。默认情况下，包或模块旁边的文件夹
+        ``'instance'`` 被假定为实例路径。
+    :param instance_relative_config: 如果设置为 ``True`` ，则用于加载配置的相对文件名被
+        假定为相对于实例路径而不是应用程序根目录。
+    :param root_path: 应用程序文件的根路径。仅当无法自动检测时才应手动设置，例如命名空间
+        包。
     """
 
     default_config: cabc.Mapping[str, t.Any] = {
@@ -235,16 +209,14 @@ class Flask(App):
         "PROVIDE_AUTOMATIC_OPTIONS": True,
     }
 
-    #: The class that is used for request objects.  See :class:`~flask.Request`
-    #: for more information.
+    #: 用于请求对象的类。  有关详细信息，请参阅 :class:`~flask.Request` 。
     request_class: type[Request] = Request
 
-    #: The class that is used for response objects.  See
-    #: :class:`~flask.Response` for more information.
+    #: 用于响应对象的类。  有关详细信息，请参阅 :class:`~flask.Response` 。
     response_class: type[Response] = Response
 
-    #: the session interface to use.  By default an instance of
-    #: :class:`~flask.sessions.SecureCookieSessionInterface` is used here.
+    #: 要使用的会话接口。  默认情况下，此处使用
+    #: :class:`~flask.sessions.SecureCookieSessionInterface` 的实例。
     #:
     #: .. versionadded:: 0.8
     session_interface: SessionInterface = SecureCookieSessionInterface()
@@ -252,9 +224,8 @@ class Flask(App):
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         import warnings
 
-        # These method signatures were updated to take a ctx param. Detect
-        # overridden methods in subclasses that still have the old signature.
-        # Show a deprecation warning and wrap to call with correct args.
+        # 这些方法签名已更新为采用 ctx 参数。检测子类中仍具有旧签名的重写方法。显示弃用
+        # 警告并换行以使用正确的参数进行调用。
         for method in (
             cls.handle_http_exception,
             cls.handle_user_exception,
@@ -272,25 +243,25 @@ class Flask(App):
             base_method = getattr(Flask, method.__name__)
 
             if method is base_method:
-                # not overridden
+                # 没有被覆盖
                 continue
 
-            # get the second parameter (first is self)
+            # 获取第二个参数（第一个是self）
             iter_params = iter(inspect.signature(method).parameters.values())
             next(iter_params)
             param = next(iter_params, None)
 
-            # must have second parameter named ctx or annotated AppContext
+            # 必须有第二个参数名为 ctx 或带注释的 AppContext
             if param is None or not (
-                # no annotation, match name
+                # 无注释，匹配名称
                 (param.annotation is inspect.Parameter.empty and param.name == "ctx")
                 or (
-                    # string annotation, access path ends with AppContext
+                    # 字符串注解，访问路径以AppContext结尾
                     isinstance(param.annotation, str)
                     and param.annotation.rpartition(".")[2] == "AppContext"
                 )
                 or (
-                    # class annotation
+                    # 类注释
                     inspect.isclass(param.annotation)
                     and issubclass(param.annotation, AppContext)
                 )
@@ -331,27 +302,22 @@ class Flask(App):
             root_path=root_path,
         )
 
-        #: The Click command group for registering CLI commands for this
-        #: object. The commands are available from the ``flask`` command
-        #: once the application has been discovered and blueprints have
-        #: been registered.
+        #: 用于为此对象注册 CLI 命令的 Click 命令组。一旦发现应用程序并注册了蓝图，就可
+        #: 以通过 ``flask`` 命令使用这些命令。
         self.cli = cli.AppGroup()
 
-        # Set the name of the Click group in case someone wants to add
-        # the app's commands to another CLI tool.
+        # 设置 Click 组的名称，以防有人想要将应用程序的命令添加到另一个 CLI 工具。
         self.cli.name = self.name
 
-        # Add a static route using the provided static_url_path, static_host,
-        # and static_folder if there is a configured static_folder.
-        # Note we do this without checking if static_folder exists.
-        # For one, it might be created while the server is running (e.g. during
-        # development). Also, Google App Engine stores static files somewhere
+        # 如果已配置 static_folder，则使用提供的 static_url_path、static_host 和
+        # static_folder 添加静态路由。请注意，我们这样做时没有检查 static_folder 是否存
+        # 在。其一，它可能是在服务器运行时创建的（e.g.在开发期间）。此外，Google App
+        # Engine 将静态文件存储在某处
         if self.has_static_folder:
             assert bool(static_host) == host_matching, (
                 "Invalid static_host/host_matching combination"
             )
-            # Use a weakref to avoid creating a reference cycle between the app
-            # and the view function (see #3761).
+            # 使用weakref来避免在应用程序和视图函数之间创建引用循环（参见#3761）。
             self_ref = weakref.ref(self)
             self.add_url_rule(
                 f"{self.static_url_path}/<path:filename>",
@@ -361,19 +327,17 @@ class Flask(App):
             )
 
     def get_send_file_max_age(self, filename: str | None) -> int | None:
-        """Used by :func:`send_file` to determine the ``max_age`` cache
-        value for a given file path if it wasn't passed.
+        """如果未传递给定文件路径，则由 :func:`send_file` 使用来确定 ``max_age`` 缓存值
+        。
 
-        By default, this returns :data:`SEND_FILE_MAX_AGE_DEFAULT` from
-        the configuration of :data:`~flask.current_app`. This defaults
-        to ``None``, which tells the browser to use conditional requests
-        instead of a timed cache, which is usually preferable.
+        默认情况下，这会从 :data:`~flask.current_app` 的配置中返回
+        :data:`SEND_FILE_MAX_AGE_DEFAULT` 。默认为 ``None`` ，它告诉浏览器使用条件请求而
+        不是定时缓存，这通常是更好的选择。
 
-        Note this is a duplicate of the same method in the Flask
-        class.
+        请注意，这是 Flask 类中相同方法的重复。
 
         .. versionchanged:: 2.0
-            The default configuration is ``None`` instead of 12 hours.
+            默认配置是 ``None`` 而不是 12 小时。
 
         .. versionadded:: 0.9
         """
@@ -388,13 +352,11 @@ class Flask(App):
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
-        """The view function used to serve files from
-        :attr:`static_folder`. A route is automatically registered for
-        this view at :attr:`static_url_path` if :attr:`static_folder` is
-        set.
+        """用于提供来自 :attr:`static_folder` 的文件的视图函数。如果设置了
+        :attr:`static_folder` ，则会在 :attr:`static_url_path` 处自动为此视图注册一条路
+        由。
 
-        Note this is a duplicate of the same method in the Flask
-        class.
+        请注意，这是 Flask 类中相同方法的重复。
 
         .. versionadded:: 0.5
 
@@ -402,8 +364,8 @@ class Flask(App):
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
-        # send_file only knows to call get_send_file_max_age on the app,
-        # call it here so it works for blueprints too.
+        # send_file 只知道在应用程序上调用 get_send_file_max_age ，在此处调用它，因此它
+        # 也适用于蓝图。
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
@@ -412,25 +374,24 @@ class Flask(App):
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
     ) -> t.IO[t.AnyStr]:
-        """Open a resource file relative to :attr:`root_path` for reading.
+        """打开相对于 :attr:`root_path` 的资源文件进行读取。
 
-        For example, if the file ``schema.sql`` is next to the file
-        ``app.py`` where the ``Flask`` app is defined, it can be opened
-        with:
+        例如，如果文件 ``schema.sql`` 位于定义 ``Flask`` 应用程序的文件 ``app.py`` 旁边
+        ，则可以使用以下命令打开它：
 
         .. code-block:: python
 
             with app.open_resource("schema.sql") as f:
                 conn.executescript(f.read())
 
-        :param resource: Path to the resource relative to :attr:`root_path`.
-        :param mode: Open the file in this mode. Only reading is supported,
-            valid values are ``"r"`` (or ``"rt"``) and ``"rb"``.
-        :param encoding: Open the file with this encoding when opening in text
-            mode. This is ignored when opening in binary mode.
+        :param resource: 相对于 :attr:`root_path` 的资源路径。
+        :param mode: 在此模式下打开文件。仅支持读取，有效值为 ``"r"`` （或 ``"rt"`` ）和
+            ``"rb"`` 。
+        :param encoding: 以文本模式打开时使用此编码打开文件。以二进制模式打开时会忽略这
+            一点。
 
         .. versionchanged:: 3.1
-            Added the ``encoding`` parameter.
+            添加了 ``encoding`` 参数。
         """
         if mode not in {"r", "rt", "rb"}:
             raise ValueError("Resources can only be opened for reading.")
@@ -445,17 +406,16 @@ class Flask(App):
     def open_instance_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
     ) -> t.IO[t.AnyStr]:
-        """Open a resource file relative to the application's instance folder
-        :attr:`instance_path`. Unlike :meth:`open_resource`, files in the
-        instance folder can be opened for writing.
+        """打开与应用程序实例文件夹 :attr:`instance_path` 相关的资源文件。与
+        :meth:`open_resource` 不同，实例文件夹中的文件可以打开进行写入。
 
-        :param resource: Path to the resource relative to :attr:`instance_path`.
-        :param mode: Open the file in this mode.
-        :param encoding: Open the file with this encoding when opening in text
-            mode. This is ignored when opening in binary mode.
+        :param resource: 相对于 :attr:`instance_path` 的资源路径。
+        :param mode: 在此模式下打开文件。
+        :param encoding: 以文本模式打开时使用此编码打开文件。以二进制模式打开时会忽略这
+            一点。
 
         .. versionchanged:: 3.1
-            Added the ``encoding`` parameter.
+            添加了 ``encoding`` 参数。
         """
         path = os.path.join(self.instance_path, resource)
 
@@ -465,14 +425,12 @@ class Flask(App):
         return open(path, mode, encoding=encoding)
 
     def create_jinja_environment(self) -> Environment:
-        """Create the Jinja environment based on :attr:`jinja_options`
-        and the various Jinja-related methods of the app. Changing
-        :attr:`jinja_options` after this will have no effect. Also adds
-        Flask-related globals and filters to the environment.
+        """基于 :attr:`jinja_options` 和应用程序的各种 Jinja 相关方法创建 Jinja 环境。此
+        后更改 :attr:`jinja_options` 将无效。还将 Flask 相关的全局变量和过滤器添加到环境
+        中。
 
         .. versionchanged:: 0.11
-           ``Environment.auto_reload`` set in accordance with
-           ``TEMPLATES_AUTO_RELOAD`` configuration option.
+           ``Environment.auto_reload`` 根据 ``TEMPLATES_AUTO_RELOAD`` 配置选项设置。
 
         .. versionadded:: 0.5
         """
@@ -494,9 +452,8 @@ class Flask(App):
             url_for=self.url_for,
             get_flashed_messages=get_flashed_messages,
             config=self.config,
-            # request, session and g are normally added with the
-            # context processor for efficiency reasons but for imported
-            # templates we also want the proxies in there.
+            # 出于效率原因，请求、会话和 g 通常与上下文处理器一起添加，但对于导入的模板
+            # ，我们还需要其中的代理。
             request=request,
             session=session,
             g=g,
@@ -505,22 +462,19 @@ class Flask(App):
         return rv
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
-        """Creates a URL adapter for the given request. The URL adapter
-        is created at a point where the request context is not yet set
-        up so the request is passed explicitly.
+        """为给定请求创建 URL 适配器。 URL 适配器是在请求上下文尚未设置时创建的，因此请
+        求是显式传递的。
 
         .. versionchanged:: 3.1
-            If :data:`SERVER_NAME` is set, it does not restrict requests to
-            only that domain, for both ``subdomain_matching`` and
-            ``host_matching``.
+            如果设置了 :data:`SERVER_NAME` ，则对于 ``subdomain_matching`` 和
+            ``host_matching`` 来说，它不会将请求限制为仅发送到该域。
 
         .. versionchanged:: 1.0
-            :data:`SERVER_NAME` no longer implicitly enables subdomain
-            matching. Use :attr:`subdomain_matching` instead.
+            :data:`SERVER_NAME` 不再隐式启用子域匹配。使用 :attr:`subdomain_matching` 代
+            替。
 
         .. versionchanged:: 0.9
-           This can be called outside a request when the URL adapter is created
-           for an application context.
+           当为应用程序上下文创建 URL 适配器时，可以在请求外部调用此方法。
 
         .. versionadded:: 0.6
         """
@@ -528,26 +482,24 @@ class Flask(App):
             if (trusted_hosts := self.config["TRUSTED_HOSTS"]) is not None:
                 request.trusted_hosts = trusted_hosts
 
-            # Check trusted_hosts here until bind_to_environ does.
+            # 检查 trusted_hosts 直到 bind_to_environ 完成。
             request.host = get_host(request.environ, request.trusted_hosts)  # pyright: ignore
             subdomain = None
             server_name = self.config["SERVER_NAME"]
 
             if self.url_map.host_matching:
-                # Don't pass SERVER_NAME, otherwise it's used and the actual
-                # host is ignored, which breaks host matching.
+                # 不要传递 SERVER_NAME，否则会使用它并忽略实际主机，这会破坏主机匹配。
                 server_name = None
             elif not self.subdomain_matching:
-                # Werkzeug doesn't implement subdomain matching yet. Until then,
-                # disable it by forcing the current subdomain to the default, or
-                # the empty string.
+                # Werkzeug 尚未实现子域匹配。在此之前，通过将当前子域强制为默认值或空字
+                # 符串来禁用它。
                 subdomain = self.url_map.default_subdomain or ""
 
             return self.url_map.bind_to_environ(
                 request.environ, server_name=server_name, subdomain=subdomain
             )
 
-        # Need at least SERVER_NAME to match/build outside a request.
+        # 至少需要 SERVER_NAME 才能在请求之外匹配/构建。
         if self.config["SERVER_NAME"] is not None:
             return self.url_map.bind(
                 self.config["SERVER_NAME"],
@@ -558,20 +510,17 @@ class Flask(App):
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
-        """Intercept routing exceptions and possibly do something else.
+        """拦截路由异常并可能做其他事情。
 
-        In debug mode, intercept a routing redirect and replace it with
-        an error if the body will be discarded.
+        在调试模式下，拦截路由重定向，如果主体将被丢弃，则将其替换为错误。
 
-        With modern Werkzeug this shouldn't occur, since it now uses a
-        308 status which tells the browser to resend the method and
-        body.
+        对于现代 Werkzeug ，这种情况不应该发生，因为它现在使用 308 状态告诉浏览器重新发
+        送方法和正文。
 
         .. versionchanged:: 2.1
-            Don't intercept 307 and 308 redirects.
+            不要拦截 307 和 308 重定向。
 
-        :meta private:
-        :internal:
+        ：元私有：：内部：
         """
         if (
             not self.debug
@@ -588,24 +537,20 @@ class Flask(App):
     def update_template_context(
         self, ctx: AppContext, context: dict[str, t.Any]
     ) -> None:
-        """Update the template context with some commonly used variables.
-        This injects request, session, config and g into the template
-        context as well as everything template context processors want
-        to inject.  Note that the as of Flask 0.6, the original values
-        in the context will not be overridden if a context processor
-        decides to return a value with the same key.
+        """使用一些常用变量更新模板上下文。这会将 request、session、config 和 g 以及模板
+        上下文处理器想要注入的所有内容注入到模板上下文中。  请注意，从 Flask 0.6 开始，
+        如果上下文处理器决定返回具有相同键的值，则不会覆盖上下文中的原始值。
 
-        :param context: the context as a dictionary that is updated in place
-                        to add extra variables.
+        :param context: 上下文作为字典，可以就地更新以添加额外的变量。
         """
         names: t.Iterable[str | None] = (None,)
 
-        # A template may be rendered outside a request context.
+        # 模板可以在请求上下文之外呈现。
         if ctx.has_request:
             names = chain(names, reversed(ctx.request.blueprints))
 
-        # The values passed to render_template take precedence. Keep a
-        # copy to re-apply after all context functions.
+        # 传递给 render_template 的值优先。保留一份副本，以便在所有上下文功能之后重新应
+        # 用。
         orig_ctx = context.copy()
 
         for name in names:
@@ -616,9 +561,8 @@ class Flask(App):
         context.update(orig_ctx)
 
     def make_shell_context(self) -> dict[str, t.Any]:
-        """Returns the shell context for an interactive shell for this
-        application.  This runs all the registered shell context
-        processors.
+        """返回此应用程序的交互式 shell 的 shell 上下文。  这将运行所有已注册的 shell 上
+        下文处理器。
 
         .. versionadded:: 0.11
         """
@@ -635,63 +579,50 @@ class Flask(App):
         load_dotenv: bool = True,
         **options: t.Any,
     ) -> None:
-        """Runs the application on a local development server.
+        """在本地开发服务器上运行应用程序。
 
-        Do not use ``run()`` in a production setting. It is not intended to
-        meet security and performance requirements for a production server.
-        Instead, see :doc:`/deploying/index` for WSGI server recommendations.
+        不要在生产环境中使用 ``run()`` 。它并不是为了满足生产服务器的安全和性能要求。相
+        反，请参阅 :doc:`/deploying/index` 了解 WSGI 服务器建议。
 
-        If the :attr:`debug` flag is set the server will automatically reload
-        for code changes and show a debugger in case an exception happened.
+        如果设置了 :attr:`debug` 标志，服务器将自动重新加载代码更改，并在发生异常时显示
+        调试器。
 
-        If you want to run the application in debug mode, but disable the
-        code execution on the interactive debugger, you can pass
-        ``use_evalex=False`` as parameter.  This will keep the debugger's
-        traceback screen active, but disable code execution.
+        如果您想在调试模式下运行应用程序，但禁用交互式调试器上的代码执行，则可以传递
+        ``use_evalex=False`` 作为参数。  这将使调试器的回溯屏幕保持活动状态，但禁用代码
+        执行。
 
-        It is not recommended to use this function for development with
-        automatic reloading as this is badly supported.  Instead you should
-        be using the :command:`flask` command line script's ``run`` support.
+        不建议使用此功能进行自动重新加载的开发，因为此功能的支持很差。  相反，您应该使用
+        :command:`flask` 命令行脚本的 ``run`` 支持。
 
-        .. admonition:: Keep in Mind
+        .. admonition:: 牢记在心
 
-           Flask will suppress any server error with a generic error page
-           unless it is in debug mode.  As such to enable just the
-           interactive debugger without the code reloading, you have to
-           invoke :meth:`run` with ``debug=True`` and ``use_reloader=False``.
-           Setting ``use_debugger`` to ``True`` without being in debug mode
-           won't catch any exceptions because there won't be any to
-           catch.
+           Flask 将使用通用错误页面抑制任何服务器错误，除非处于调试模式。  因此，要仅启
+           用交互式调试器而不重新加载代码，您必须使用 ``debug=True`` 和
+           ``use_reloader=False`` 调用 :meth:`run` 。在不处于调试模式的情况下将
+           ``use_debugger`` 设置为 ``True`` 不会捕获任何异常，因为不会捕获任何异常。
 
-        :param host: the hostname to listen on. Set this to ``'0.0.0.0'`` to
-            have the server available externally as well. Defaults to
-            ``'127.0.0.1'`` or the host in the ``SERVER_NAME`` config variable
-            if present.
-        :param port: the port of the webserver. Defaults to ``5000`` or the
-            port defined in the ``SERVER_NAME`` config variable if present.
-        :param debug: if given, enable or disable debug mode. See
-            :attr:`debug`.
-        :param load_dotenv: Load the nearest :file:`.env` and :file:`.flaskenv`
-            files to set environment variables. Will also change the working
-            directory to the directory containing the first file found.
-        :param options: the options to be forwarded to the underlying Werkzeug
-            server. See :func:`werkzeug.serving.run_simple` for more
-            information.
+        :param host: 要监听的主机名。将其设置为 ``'0.0.0.0'`` 以使服务器也可以在外部使用
+            。默认为 ``'127.0.0.1'`` 或 ``SERVER_NAME`` 配置变量中的主机（如果存在）。
+        :param port: 网络服务器的端口。默认为 ``5000`` 或 ``SERVER_NAME`` 配置变量中定义
+            的端口（如果存在）。
+        :param debug: 如果给定，启用或禁用调试模式。请参阅 :attr:`debug` 。
+        :param load_dotenv: 加载最近的 :file:`.env` 和 :file:`.flaskenv` 文件来设置环境
+            变量。还将工作目录更改为包含找到的第一个文件的目录。
+        :param options: 要转发到底层 Werkzeug 服务器的选项。请参阅
+            :func:`werkzeug.serving.run_simple` 了解更多信息。
 
         .. versionchanged:: 1.0
-            If installed, python-dotenv will be used to load environment
-            variables from :file:`.env` and :file:`.flaskenv` files.
+            如果安装，python-dotenv 将用于从 :file:`.env` 和 :file:`.flaskenv` 文件加载
+            环境变量。
 
-            The :envvar:`FLASK_DEBUG` environment variable will override :attr:`debug`.
+            :envvar:`FLASK_DEBUG` 环境变量将覆盖 :attr:`debug` 。
 
-            Threaded mode is enabled by default.
+            默认情况下启用线程模式。
 
         .. versionchanged:: 0.10
-            The default port is now picked from the ``SERVER_NAME``
-            variable.
+            现在从 ``SERVER_NAME`` 变量中选择默认端口。
         """
-        # Ignore this call so that it doesn't start another server if
-        # the 'flask run' command is used.
+        # 忽略此调用，以便在使用 'flask run' 命令时它不会启动另一个服务器。
         if os.environ.get("FLASK_RUN_FROM_CLI") == "true":
             if not is_running_from_reloader():
                 click.secho(
@@ -707,11 +638,11 @@ class Flask(App):
         if get_load_dotenv(load_dotenv):
             cli.load_dotenv()
 
-            # if set, env var overrides existing value
+            # 如果设置，环境变量将覆盖现有值
             if "FLASK_DEBUG" in os.environ:
                 self.debug = get_debug_flag()
 
-        # debug passed to method overrides all other sources
+        # 传递给方法的调试会覆盖所有其他源
         if debug is not None:
             self.debug = bool(debug)
 
@@ -747,37 +678,30 @@ class Flask(App):
         try:
             run_simple(host, port, self, **options)
         finally:
-            # reset the first request information if the development server
-            # reset normally.  This makes it possible to restart the server
-            # without reloader and that stuff from an interactive shell.
+            # 如果开发服务器正常复位，则复位第一请求信息。  这使得无需重新加载程序即可从
+            # 交互式 shell 中重新启动服务器。
             self._got_first_request = False
 
     def test_client(self, use_cookies: bool = True, **kwargs: t.Any) -> FlaskClient:
-        """Creates a test client for this application.  For information
-        about unit testing head over to :doc:`/testing`.
+        """为此应用程序创建一个测试客户端。  有关单元测试的信息请前往 :doc:`/testing` 。
 
-        Note that if you are testing for assertions or exceptions in your
-        application code, you must set ``app.testing = True`` in order for the
-        exceptions to propagate to the test client.  Otherwise, the exception
-        will be handled by the application (not visible to the test client) and
-        the only indication of an AssertionError or other exception will be a
-        500 status code response to the test client.  See the :attr:`testing`
-        attribute.  For example::
+        请注意，如果您正在测试应用程序代码中的断言或异常，则必须设置
+        ``app.testing = True`` 以便将异常传播到测试客户端。  否则，异常将由应用程序处理
+        （对测试客户端不可见），并且 AssertionError 或其他异常的唯一指示将是对测试客户端
+        的 500 状态代码响应。  请参阅 :attr:`testing` 属性。  例如::
 
             app.testing = True
             client = app.test_client()
 
-        The test client can be used in a ``with`` block to defer the closing down
-        of the context until the end of the ``with`` block.  This is useful if
-        you want to access the context locals for testing::
+        测试客户端可以在 ``with`` 块中使用，以推迟上下文的关闭，直到 ``with`` 块结束。
+        如果您想访问上下文局部变量进行测试，这非常有用::
 
             with app.test_client() as c:
                 rv = c.get('/?vodka=42')
                 assert request.args['vodka'] == '42'
 
-        Additionally, you may pass optional keyword arguments that will then
-        be passed to the application's :attr:`test_client_class` constructor.
-        For example::
+        此外，您可以传递可选的关键字参数，然后将其传递给应用程序的
+        :attr:`test_client_class` 构造函数。例如::
 
             from flask.testing import FlaskClient
 
@@ -789,19 +713,18 @@ class Flask(App):
             app.test_client_class = CustomClient
             client = app.test_client(authentication='Basic ....')
 
-        See :class:`~flask.testing.FlaskClient` for more information.
+        有关详细信息，请参阅 :class:`~flask.testing.FlaskClient` 。
 
         .. versionchanged:: 0.4
-           added support for ``with`` block usage for the client.
+           添加了对客户端 ``with`` 块使用的支持。
 
         .. versionadded:: 0.7
-           The `use_cookies` parameter was added as well as the ability
-           to override the client to be used by setting the
-           :attr:`test_client_class` attribute.
+           添加了 `use_cookies` 参数，并能够通过设置 :attr:`test_client_class` 属性来覆
+           盖要使用的客户端。
 
         .. versionchanged:: 0.11
-           Added `**kwargs` to support passing additional keyword arguments to
-           the constructor of :attr:`test_client_class`.
+           添加了 `**kwargs` 以支持将附加关键字参数传递给 :attr:`test_client_class` 的构
+           造函数。
         """
         cls = self.test_client_class
         if cls is None:
@@ -811,12 +734,10 @@ class Flask(App):
         )
 
     def test_cli_runner(self, **kwargs: t.Any) -> FlaskCliRunner:
-        """Create a CLI runner for testing CLI commands.
-        See :ref:`testing-cli`.
+        """创建一个 CLI 运行器来测试 CLI 命令。请参阅 :ref:`testing-cli` 。
 
-        Returns an instance of :attr:`test_cli_runner_class`, by default
-        :class:`~flask.testing.FlaskCliRunner`. The Flask app object is
-        passed as the first argument.
+        返回 :attr:`test_cli_runner_class` 的实例，默认为
+        :class:`~flask.testing.FlaskCliRunner` 。 Flask 应用程序对象作为第一个参数传递。
 
         .. versionadded:: 1.0
         """
@@ -830,30 +751,24 @@ class Flask(App):
     def handle_http_exception(
         self, ctx: AppContext, e: HTTPException
     ) -> HTTPException | ft.ResponseReturnValue:
-        """Handles an HTTP exception.  By default this will invoke the
-        registered error handlers and fall back to returning the
-        exception as response.
+        """处理 HTTP 异常。  默认情况下，这将调用注册的错误处理程序并返回异常作为响应。
 
         .. versionchanged:: 1.0.3
-            ``RoutingException``, used internally for actions such as
-             slash redirects during routing, is not passed to error
-             handlers.
+            ``RoutingException`` ，内部用于以下操作
+             路由期间的斜杠重定向不会传递给错误处理程序。
 
         .. versionchanged:: 1.0
-            Exceptions are looked up by code *and* by MRO, so
-            ``HTTPException`` subclasses can be handled with a catch-all
-            handler for the base ``HTTPException``.
+            异常由代码*和* MRO 查找，因此 ``HTTPException`` 子类可以使用基本
+            ``HTTPException`` 的包罗万象的处理程序进行处理。
 
         .. versionadded:: 0.3
         """
-        # Proxy exceptions don't have error codes.  We want to always return
-        # those unchanged as errors
+        # 代理异常没有错误代码。  我们希望始终将那些未更改的错误作为错误返回
         if e.code is None:
             return e
 
-        # RoutingExceptions are used internally to trigger routing
-        # actions, such as slash redirects raising RequestRedirect. They
-        # are not raised or handled in user code.
+        # RoutingExceptions 在内部用于触发路由操作，例如引发 RequestRedirect 的斜杠重定
+        # 向。它们不是在用户代码中引发或处理的。
         if isinstance(e, RoutingException):
             return e
 
@@ -865,17 +780,14 @@ class Flask(App):
     def handle_user_exception(
         self, ctx: AppContext, e: Exception
     ) -> HTTPException | ft.ResponseReturnValue:
-        """This method is called whenever an exception occurs that
-        should be handled. A special case is :class:`~werkzeug
-        .exceptions.HTTPException` which is forwarded to the
-        :meth:`handle_http_exception` method. This function will either
-        return a response value or reraise the exception with the same
-        traceback.
+        """每当发生需要处理的异常时，就会调用此方法。一个特殊情况是
+        :class:`~werkzeug.exceptions.HTTPException` ，它被转发到
+        :meth:`handle_http_exception` 方法。此函数将返回响应值或使用相同的回溯重新引发异
+        常。
 
         .. versionchanged:: 1.0
-            Key errors raised from request data like ``form`` show the
-            bad key in debug mode rather than a generic bad request
-            message.
+            从请求数据（如 ``form`` ）引发的密钥错误在调试模式下显示错误密钥，而不是通用
+            的错误请求消息。
 
         .. versionadded:: 0.7
         """
@@ -895,30 +807,26 @@ class Flask(App):
         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
 
     def handle_exception(self, ctx: AppContext, e: Exception) -> Response:
-        """Handle an exception that did not have an error handler
-        associated with it, or that was raised from an error handler.
-        This always causes a 500 ``InternalServerError``.
+        """处理没有关联错误处理程序的异常，或者从错误处理程序引发的异常。这总是会导致
+        500 ``InternalServerError`` 。
 
-        Always sends the :data:`got_request_exception` signal.
+        始终发送 :data:`got_request_exception` 信号。
 
-        If :data:`PROPAGATE_EXCEPTIONS` is ``True``, such as in debug
-        mode, the error will be re-raised so that the debugger can
-        display it. Otherwise, the original exception is logged, and
-        an :exc:`~werkzeug.exceptions.InternalServerError` is returned.
+        如果 :data:`PROPAGATE_EXCEPTIONS` 是 ``True`` ，例如在调试模式下，错误将被重新引
+        发，以便调试器可以显示它。否则，将记录原始异常，并返回
+        :exc:`~werkzeug.exceptions.InternalServerError` 。
 
-        If an error handler is registered for ``InternalServerError`` or
-        ``500``, it will be used. For consistency, the handler will
-        always receive the ``InternalServerError``. The original
-        unhandled exception is available as ``e.original_exception``.
+        如果为 ``InternalServerError`` 或 ``500`` 注册了错误处理程序，则将使用它。为了保
+        持一致性，处理程序将始终接收 ``InternalServerError`` 。原始未处理的异常可用作
+        ``e.original_exception`` 。
 
         .. versionchanged:: 1.1.0
-            Always passes the ``InternalServerError`` instance to the
-            handler, setting ``original_exception`` to the unhandled
-            error.
+            始终将 ``InternalServerError`` 实例传递给处理程序，将 ``original_exception``
+            设置为未处理的错误。
 
         .. versionchanged:: 1.1.0
-            ``after_request`` functions and other finalization is done
-            even for the default 500 response when there is no handler.
+            当没有处理程序时，即使对于默认的 500 响应，也会完成 ``after_request`` 函数和
+            其他终结。
 
         .. versionadded:: 0.3
         """
@@ -930,8 +838,7 @@ class Flask(App):
             propagate = self.testing or self.debug
 
         if propagate:
-            # Re-raise if called with an active exception, otherwise
-            # raise the passed in exception.
+            # 如果使用活动异常调用，则重新引发，否则引发传入的异常。
             if exc_info[1] is e:
                 raise
 
@@ -952,10 +859,8 @@ class Flask(App):
         ctx: AppContext,
         exc_info: tuple[type, BaseException, TracebackType] | tuple[None, None, None],
     ) -> None:
-        """Logs an exception.  This is called by :meth:`handle_exception`
-        if debugging is disabled and right before the handler is called.
-        The default implementation logs the exception as error on the
-        :attr:`logger`.
+        """记录异常。  如果禁用调试且在调用处理程序之前，则由 :meth:`handle_exception`
+        调用此函数。默认实现将异常记录为 :attr:`logger` 上的错误。
 
         .. versionadded:: 0.8
         """
@@ -964,35 +869,29 @@ class Flask(App):
         )
 
     def dispatch_request(self, ctx: AppContext) -> ft.ResponseReturnValue:
-        """Does the request dispatching.  Matches the URL and returns the
-        return value of the view or error handler.  This does not have to
-        be a response object.  In order to convert the return value to a
-        proper response object, call :func:`make_response`.
+        """是否进行请求调度。  匹配 URL 并返回视图或错误处理程序的返回值。  这不一定是响
+        应对象。  为了将返回值转换为正确的响应对象，请调用 :func:`make_response` 。
 
         .. versionchanged:: 0.7
-           This no longer does the exception handling, this code was
-           moved to the new :meth:`full_dispatch_request`.
+           这不再进行异常处理，此代码已移至新的 :meth:`full_dispatch_request` 。
         """
         req = ctx.request
 
         if req.routing_exception is not None:
             self.raise_routing_exception(req)
         rule: Rule = req.url_rule  # type: ignore[assignment]
-        # if we provide automatic options for this URL and the
-        # request came with the OPTIONS method, reply automatically
+        # 如果我们为此 URL 提供自动选项，并且请求通过 OPTIONS 方法发出，则自动回复
         if (
             getattr(rule, "provide_automatic_options", False)
             and req.method == "OPTIONS"
         ):
             return self.make_default_options_response(ctx)
-        # otherwise dispatch to the handler for that endpoint
+        # 否则分派到该端点的处理程序
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
-        """Dispatches the request and on top of that performs request
-        pre and postprocessing as well as HTTP exception catching and
-        error handling.
+        """分派请求，并在此之上执行请求预处理和后处理以及 HTTP 异常捕获和错误处理。
 
         .. versionadded:: 0.7
         """
@@ -1024,17 +923,14 @@ class Flask(App):
         rv: ft.ResponseReturnValue | HTTPException,
         from_error_handler: bool = False,
     ) -> Response:
-        """Given the return value from a view function this finalizes
-        the request by converting it into a response and invoking the
-        postprocessing functions.  This is invoked for both normal
-        request dispatching as well as error handlers.
+        """给定视图函数的返回值，通过将请求转换为响应并调用后处理函数来完成请求。  正常
+        请求分派和错误处理程序都会调用此方法。
 
-        Because this means that it might be called as a result of a
-        failure a special safe mode is available which can be enabled
-        with the `from_error_handler` flag.  If enabled, failures in
-        response processing will be logged and otherwise ignored.
+        因为这意味着它可能会因失败而被调用，所以可以使用特殊的安全模式，可以使用
+        `from_error_handler` 标志启用该模式。  如果启用，响应处理中的失败将被记录下来，
+        否则将被忽略。
 
-        :internal:
+        ：内部：
         """
         response = self.make_response(rv)
         try:
@@ -1051,9 +947,8 @@ class Flask(App):
         return response
 
     def make_default_options_response(self, ctx: AppContext) -> Response:
-        """This method is called to create the default ``OPTIONS`` response.
-        This can be changed through subclassing to change the default
-        behavior of ``OPTIONS`` responses.
+        """调用此方法来创建默认的 ``OPTIONS`` 响应。这可以通过子类化来更改 ``OPTIONS``
+        响应的默认行为。
 
         .. versionadded:: 0.7
         """
@@ -1063,11 +958,10 @@ class Flask(App):
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
-        """Ensure that the function is synchronous for WSGI workers.
-        Plain ``def`` functions are returned as-is. ``async def``
-        functions are wrapped to run and wait for the response.
+        """确保该函数对于 WSGI 工作线程是同步的。普通 ``def`` 函数按原样返回。
+        ``async def`` 函数被包装以运行并等待响应。
 
-        Override this method to change how the app runs async views.
+        重写此方法以更改应用程序运行异步视图的方式。
 
         .. versionadded:: 2.0
         """
@@ -1079,14 +973,13 @@ class Flask(App):
     def async_to_sync(
         self, func: t.Callable[..., t.Coroutine[t.Any, t.Any, t.Any]]
     ) -> t.Callable[..., t.Any]:
-        """Return a sync function that will run the coroutine function.
+        """返回将运行协程函数的同步函数。
 
         .. code-block:: python
 
             result = app.async_to_sync(func)(*args, **kwargs)
 
-        Override this method to change how the app converts async code
-        to be synchronously callable.
+        重写此方法以更改应用程序将异步代码转换为可同步调用的方式。
 
         .. versionadded:: 2.0
         """
@@ -1110,72 +1003,56 @@ class Flask(App):
         _external: bool | None = None,
         **values: t.Any,
     ) -> str:
-        """Generate a URL to the given endpoint with the given values.
+        """使用给定值生成给定端点的 URL 。
 
-        This is called by :func:`flask.url_for`, and can be called
-        directly as well.
+        这是由 :func:`flask.url_for` 调用的，也可以直接调用。
 
-        An *endpoint* is the name of a URL rule, usually added with
-        :meth:`@app.route() <route>`, and usually the same name as the
-        view function. A route defined in a :class:`~flask.Blueprint`
-        will prepend the blueprint's name separated by a ``.`` to the
-        endpoint.
+        *endpoint* 是 URL 规则的名称，通常添加 :meth:`@app.route() <route>` ，并且通常与
+        视图函数同名。 :class:`~flask.Blueprint` 中定义的路由将在端点前面添加由 ``.`` 分
+        隔的蓝图名称。
 
-        In some cases, such as email messages, you want URLs to include
-        the scheme and domain, like ``https://example.com/hello``. When
-        not in an active request, URLs will be external by default, but
-        this requires setting :data:`SERVER_NAME` so Flask knows what
-        domain to use. :data:`APPLICATION_ROOT` and
-        :data:`PREFERRED_URL_SCHEME` should also be configured as
-        needed. This config is only used when not in an active request.
+        在某些情况下，例如电子邮件，您希望 URL 包含方案和域，例如
+        ``https://example.com/hello`` 。当不在活动请求中时，默认情况下 URL 将是外部的，
+        但这需要设置 :data:`SERVER_NAME` 以便 Flask 知道要使用哪个域。
+        :data:`APPLICATION_ROOT` 和 :data:`PREFERRED_URL_SCHEME` 也应根据需要进行配置。
+        此配置仅在不在活动请求中时使用。
 
-        Functions can be decorated with :meth:`url_defaults` to modify
-        keyword arguments before the URL is built.
+        可以使用 :meth:`url_defaults` 修饰函数，以在构建 URL 之前修改关键字参数。
 
-        If building fails for some reason, such as an unknown endpoint
-        or incorrect values, the app's :meth:`handle_url_build_error`
-        method is called. If that returns a string, that is returned,
-        otherwise a :exc:`~werkzeug.routing.BuildError` is raised.
+        如果由于某种原因（例如未知端点或不正确的值）构建失败，则会调用应用程序的
+        :meth:`handle_url_build_error` 方法。如果返回一个字符串，则返回该字符串，否则引
+        发 :exc:`~werkzeug.routing.BuildError` 。
 
-        :param endpoint: The endpoint name associated with the URL to
-            generate. If this starts with a ``.``, the current blueprint
-            name (if any) will be used.
-        :param _anchor: If given, append this as ``#anchor`` to the URL.
-        :param _method: If given, generate the URL associated with this
-            method for the endpoint.
-        :param _scheme: If given, the URL will have this scheme if it
-            is external.
-        :param _external: If given, prefer the URL to be internal
-            (False) or require it to be external (True). External URLs
-            include the scheme and domain. When not in an active
-            request, URLs are external by default.
-        :param values: Values to use for the variable parts of the URL
-            rule. Unknown keys are appended as query string arguments,
-            like ``?a=b&c=d``.
+        :param endpoint: 与要生成的 URL 关联的端点名称。如果以 ``.`` 开头，则将使用当前
+            的蓝图名称（如果有）。
+        :param _anchor: 如果给出，请将其作为 ``#anchor`` 附加到 URL 中。
+        :param _method: 如果给定，则为端点生成与此方法关联的 URL。
+        :param _scheme: 如果给定，URL 将具有此方案（如果它是外部的）。
+        :param _external: 如果给定，则首选 URL 为内部 (False) 或要求它为外部 (True)。外
+            部 URL 包括方案和域。当不在活动请求中时，URL 默认是外部的。
+        :param values: 用于 URL 规则的变量部分的值。未知键作为查询字符串参数附加，例如
+            ``?a=b&c=d`` 。
 
         .. versionadded:: 2.2
-            Moved from ``flask.url_for``, which calls this method.
+            从 ``flask.url_for`` 移出，它调用此方法。
         """
         if (ctx := _cv_app.get(None)) is not None and ctx.has_request:
             url_adapter = ctx.url_adapter
             blueprint_name = ctx.request.blueprint
 
-            # If the endpoint starts with "." and the request matches a
-            # blueprint, the endpoint is relative to the blueprint.
+            # 如果端点以 "." 开头并且请求与蓝图匹配，则端点是相对于蓝图的。
             if endpoint[:1] == ".":
                 if blueprint_name is not None:
                     endpoint = f"{blueprint_name}{endpoint}"
                 else:
                     endpoint = endpoint[1:]
 
-            # When in a request, generate a URL without scheme and
-            # domain by default, unless a scheme is given.
+            # 在请求时，默认生成不带方案和域的 URL ，除非给出方案。
             if _external is None:
                 _external = _scheme is not None
         else:
-            # If called by helpers.url_for, an app context is active,
-            # use its url_adapter. Otherwise, app.url_for was called
-            # directly, build an adapter.
+            # 如果由 helpers.url_for 调用，则应用程序上下文处于活动状态，请使用其
+            # url_adapter。否则，直接调用app.url_for，构建适配器。
             if ctx is not None:
                 url_adapter = ctx.url_adapter
             else:
@@ -1189,13 +1066,11 @@ class Flask(App):
                     " needed."
                 )
 
-            # When outside a request, generate a URL with scheme and
-            # domain by default.
+            # 当外部请求时，默认生成带有方案和域的 URL 。
             if _external is None:
                 _external = True
 
-        # It is an error to set _scheme when _external=False, in order
-        # to avoid accidental insecure URLs.
+        # 当 _external=False 时设置 _scheme 是错误的，以避免意外出现不安全的 URL。
         if _scheme is not None and not _external:
             raise ValueError("When specifying '_scheme', '_external' must be True.")
 
@@ -1222,79 +1097,69 @@ class Flask(App):
         return rv
 
     def make_response(self, rv: ft.ResponseReturnValue) -> Response:
-        """Convert the return value from a view function to an instance of
-        :attr:`response_class`.
+        """将视图函数的返回值转换为 :attr:`response_class` 的实例。
 
-        :param rv: the return value from the view function. The view function
-            must return a response. Returning ``None``, or the view ending
-            without returning, is not allowed. The following types are allowed
-            for ``view_rv``:
+        :param rv: 视图函数的返回值。视图函数必须返回响应。不允许返回 ``None`` 或视图结
+            束而不返回。 ``view_rv`` 允许使用以下类型：
 
             ``str``
-                A response object is created with the string encoded to UTF-8
-                as the body.
+                使用编码为 UTF-8 的字符串作为正文创建响应对象。
 
             ``bytes``
-                A response object is created with the bytes as the body.
+                使用字节作为主体创建响应对象。
 
             ``dict``
-                Converted to a JSON response.
+                转换为 JSON 响应。
 
             ``list``
-                Converted to a JSON response.
+                转换为 JSON 响应。
 
-            ``generator`` or ``iterator``
-                A generator that returns ``str`` or ``bytes`` to be
-                streamed as the response.
+            ``generator`` 或 ``iterator``
+                返回 ``str`` 或 ``bytes`` 的生成器作为响应进行流式传输。
 
             ``tuple``
-                Either ``(body, status, headers)``, ``(body, status)``, or
-                ``(body, headers)``, where ``body`` is any of the other types
-                allowed here, ``status`` is a string or an integer, and
-                ``headers`` is a dictionary or a list of ``(key, value)``
-                tuples. If ``body`` is a :attr:`response_class` instance,
-                ``status`` overwrites the exiting value and ``headers`` are
-                extended.
+                ``(body, status, headers)`` 、 ``(body, status)`` 或 ``(body, headers)``
+                ，其中 ``body`` 是此处允许的任何其他类型， ``status`` 是字符串或整数，
+                ``headers`` 是字典或 ``(key, value)`` 元组列表。如果 ``body`` 是
+                :attr:`response_class` 实例，则 ``status`` 会覆盖现有值，并扩展
+                ``headers`` 。
 
             :attr:`response_class`
-                The object is returned unchanged.
+                对象原样返回。
 
-            other :class:`~werkzeug.wrappers.Response` class
-                The object is coerced to :attr:`response_class`.
+            其他 :class:`~werkzeug.wrappers.Response` 类
+                该对象被强制为 :attr:`response_class` 。
 
             :func:`callable`
-                The function is called as a WSGI application. The result is
-                used to create a response object.
+                该函数被称为 WSGI 应用程序。结果用于创建响应对象。
 
         .. versionchanged:: 2.2
-            A generator will be converted to a streaming response.
-            A list will be converted to a JSON response.
+            生成器将转换为流响应。列表将转换为 JSON 响应。
 
         .. versionchanged:: 1.1
-            A dict will be converted to a JSON response.
+            字典将转换为 JSON 响应。
 
         .. versionchanged:: 0.9
-           Previously a tuple was interpreted as the arguments for the
-           response object.
+           以前，元组被解释为响应对象的参数。
         """
 
         status: int | None = None
         headers: HeadersValue | None = None
 
-        # unpack tuple returns
+        # 解包元组返回
         if isinstance(rv, tuple):
             len_rv = len(rv)
 
-            # a 3-tuple is unpacked directly
+            # 3元组直接解包
             if len_rv == 3:
                 rv, status, headers = rv  # type: ignore[misc]
-            # decide if a 2-tuple has status or headers
+            # 确定 2 元组是否有状态或标头
             elif len_rv == 2:
                 if isinstance(rv[1], (Headers, dict, tuple, list)):
                     rv, headers = rv  # pyright: ignore
                 else:
                     rv, status = rv  # type: ignore[assignment,misc]
-            # other sized tuples are not allowed
+            # 不允许使用其他大小的元组
             else:
                 raise TypeError(
                     "The view function did not return a valid response tuple."
@@ -1302,7 +1167,7 @@ class Flask(App):
                     " (body, status), or (body, headers)."
                 )
 
-        # the body must not be None
+        # 主体不能是 None
         if rv is None:
             raise TypeError(
                 f"The view function for {request.endpoint!r} did not"
@@ -1310,12 +1175,11 @@ class Flask(App):
                 " None or ended without a return statement."
             )
 
-        # make sure the body is an instance of the response class
+        # 确保主体是响应类的实例
         if not isinstance(rv, self.response_class):
             if isinstance(rv, (str, bytes, bytearray)) or isinstance(rv, cabc.Iterator):
-                # let the response class set the status and headers instead of
-                # waiting to do it manually, so that the class can handle any
-                # special logic
+                # 让响应类设置状态和标头，而不是等待手动完成，以便该类可以处理任何特殊逻
+                # 辑
                 rv = self.response_class(
                     rv,  # pyright: ignore
                     status=status,
@@ -1325,8 +1189,7 @@ class Flask(App):
             elif isinstance(rv, (dict, list)):
                 rv = self.json.response(rv)
             elif isinstance(rv, BaseResponse) or callable(rv):
-                # evaluate a WSGI callable, or coerce a different response
-                # class to the correct type
+                # 评估 WSGI 可调用，或将不同的响应类强制为正确的类型
                 try:
                     rv = self.response_class.force_type(
                         rv,  # type: ignore[arg-type]
@@ -1350,28 +1213,26 @@ class Flask(App):
                 )
 
         rv = t.cast(Response, rv)
-        # prefer the status if it was provided
+        # 更喜欢该状态（如果已提供）
         if status is not None:
             if isinstance(status, (str, bytes, bytearray)):
                 rv.status = status
             else:
                 rv.status_code = status
 
-        # extend existing headers with provided headers
+        # 使用提供的标头扩展现有标头
         if headers:
             rv.headers.update(headers)
 
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
-        """Called before the request is dispatched. Calls
-        :attr:`url_value_preprocessors` registered with the app and the
-        current blueprint (if any). Then calls :attr:`before_request_funcs`
-        registered with the app and the blueprint.
+        """在发送请求之前调用。调用向应用程序和当前蓝图（如果有）注册的
+        :attr:`url_value_preprocessors` 。然后调用向应用程序和蓝图注册的
+        :attr:`before_request_funcs` 。
 
-        If any :meth:`before_request` handler returns a non-None value, the
-        value is handled as if it was the return value from the view, and
-        further request handling is stopped.
+        如果任何 :meth:`before_request` 处理程序返回非 None 值，则该值将被视为视图的返回
+        值，并停止进一步的请求处理。
         """
         req = ctx.request
         names = (None, *reversed(req.blueprints))
@@ -1392,17 +1253,14 @@ class Flask(App):
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
-        """Can be overridden in order to modify the response object
-        before it's sent to the WSGI server.  By default this will
-        call all the :meth:`after_request` decorated functions.
+        """可以被覆盖，以便在将响应对象发送到 WSGI 服务器之前修改响应对象。  默认情况下
+        ，这将调用所有 :meth:`after_request` 修饰函数。
 
         .. versionchanged:: 0.5
-           As of Flask 0.5 the functions registered for after request
-           execution are called in reverse order of registration.
+           从 Flask 0.5 开始，请求执行后注册的函数将以注册的相反顺序调用。
 
-        :param response: a :attr:`response_class` object.
-        :return: a new response object or the same, has to be an
-                 instance of :attr:`response_class`.
+        :param response: 一个 :attr:`response_class` 对象。
+        :return: 新的响应对象或相同的对象必须是 :attr:`response_class` 的实例。
         """
         for func in ctx._after_request_functions:
             response = self.ensure_sync(func)(response)
@@ -1420,22 +1278,20 @@ class Flask(App):
     def do_teardown_request(
         self, ctx: AppContext, exc: BaseException | None = None
     ) -> None:
-        """Called after the request is dispatched and the response is finalized,
-        right before the request context is popped. Called by
-        :meth:`.AppContext.pop`.
+        """在分派请求并最终确定响应之后、弹出请求上下文之前调用。由
+        :meth:`.AppContext.pop` 调用。
 
-        This calls all functions decorated with :meth:`teardown_request`, and
-        :meth:`Blueprint.teardown_request` if a blueprint handled the request.
-        Finally, the :data:`request_tearing_down` signal is sent.
+        如果蓝图处理了请求，这将调用所有用 :meth:`teardown_request` 和
+        :meth:`Blueprint.teardown_request` 修饰的函数。最后，发送
+        :data:`request_tearing_down` 信号。
 
-        :param exc: An unhandled exception raised while dispatching the request.
-            Passed to each teardown function.
+        :param exc: 分派请求时引发未处理的异常。传递给每个清理函数。
 
         .. versionchanged:: 3.2
-            All callbacks are called rather than stopping on the first error.
+            所有回调都会被调用，而不是在第一个错误时停止。
 
         .. versionchanged:: 0.9
-            Added the ``exc`` argument.
+            添加了 ``exc`` 参数。
         """
         collect_errors = _CollectErrors()
 
@@ -1453,17 +1309,15 @@ class Flask(App):
     def do_teardown_appcontext(
         self, ctx: AppContext, exc: BaseException | None = None
     ) -> None:
-        """Called right before the application context is popped. Called by
-        :meth:`.AppContext.pop`.
+        """在弹出应用程序上下文之前调用。由 :meth:`.AppContext.pop` 调用。
 
-        This calls all functions decorated with :meth:`teardown_appcontext`.
-        Then the :data:`appcontext_tearing_down` signal is sent.
+        这将调用所有用 :meth:`teardown_appcontext` 修饰的函数。然后发送
+        :data:`appcontext_tearing_down` 信号。
 
-        :param exc: An unhandled exception raised while the context was active.
-            Passed to each teardown function.
+        :param exc: 上下文处于活动状态时引发未处理的异常。传递给每个清理函数。
 
         .. versionchanged:: 3.2
-            All callbacks are called rather than stopping on the first error.
+            所有回调都会被调用，而不是在第一个错误时停止。
 
         .. versionadded:: 0.9
         """
@@ -1479,78 +1333,67 @@ class Flask(App):
         collect_errors.raise_any("Errors during app teardown")
 
     def app_context(self) -> AppContext:
-        """Create an :class:`.AppContext`. When the context is pushed,
-        :data:`.current_app` and :data:`.g` become available.
+        """创建一个 :class:`.AppContext` 。当上下文被推送时， :data:`.current_app` 和
+        :data:`.g` 变得可用。
 
-        A context is automatically pushed when handling each request, and when
-        running any ``flask`` CLI command. Use this as a ``with`` block to
-        manually push a context outside of those situations, such as during
-        setup or testing.
+        处理每个请求以及运行任何 ``flask`` CLI 命令时，会自动推送上下文。使用它作为
+        ``with`` 块来手动将上下文推送到这些情况之外，例如在设置或测试期间。
 
         .. code-block:: python
 
             with app.app_context():
                 init_db()
 
-        See :doc:`/appcontext`.
+        请参阅 :doc:`/appcontext` 。
 
         .. versionadded:: 0.9
         """
         return AppContext(self)
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
-        """Create an :class:`.AppContext` with request information representing
-        the given WSGI environment. A context is automatically pushed when
-        handling each request. When the context is pushed, :data:`.request`,
-        :data:`.session`, :data:`g`, and :data:`.current_app` become available.
+        """使用表示给定 WSGI 环境的请求信息创建 :class:`.AppContext` 。处理每个请求时会
+        自动推送上下文。当上下文被推送时， :data:`.request` 、 :data:`.session` 、
+        :data:`g` 和 :data:`.current_app` 变得可用。
 
-        This method should not be used in your own code. Creating a valid WSGI
-        environ is not trivial. Use :meth:`test_request_context` to correctly
-        create a WSGI environ and request context instead.
+        此方法不应在您自己的代码中使用。创建一个有效的 WSGI 环境并不简单。使用
+        :meth:`test_request_context` 正确创建 WSGI 环境并请求上下文。
 
-        See :doc:`/appcontext`.
+        请参阅 :doc:`/appcontext` 。
 
-        :param environ: A WSGI environment.
+        :param environ: WSGI 环境。
         """
         return AppContext.from_environ(self, environ)
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
-        """Create an :class:`.AppContext` with request information created from
-        the given arguments. When the context is pushed, :data:`.request`,
-        :data:`.session`, :data:`g`, and :data:`.current_app` become available.
+        """使用根据给定参数创建的请求信息创建 :class:`.AppContext` 。当上下文被推送时，
+        :data:`.request` 、 :data:`.session` 、 :data:`g` 和 :data:`.current_app` 变得可
+        用。
 
-        This is useful during testing to run a function that uses request data
-        without dispatching a full request. Use this as a ``with`` block to push
-        a context.
+        这在测试运行使用请求数据而不分派完整请求的函数时非常有用。使用它作为 ``with`` 块
+        来推送上下文。
 
         .. code-block:: python
 
             with app.test_request_context(...):
                 generate_report()
 
-        See :doc:`/appcontext`.
+        请参阅 :doc:`/appcontext` 。
 
-        Takes the same arguments as Werkzeug's
-        :class:`~werkzeug.test.EnvironBuilder`, with some defaults from
-        the application. See the linked Werkzeug docs for most of the
-        available arguments. Flask-specific behavior is listed here.
+        采用与 Werkzeug 的 :class:`~werkzeug.test.EnvironBuilder` 相同的参数，并使用应用
+        程序的一些默认值。有关大多数可用参数，请参阅链接的 Werkzeug 文档。此处列出了
+        Flask 特定的行为。
 
-        :param path: URL path being requested.
-        :param base_url: Base URL where the app is being served, which
-            ``path`` is relative to. If not given, built from
-            :data:`PREFERRED_URL_SCHEME`, ``subdomain``, :data:`SERVER_NAME`,
-            and :data:`APPLICATION_ROOT`.
-        :param subdomain: Subdomain name to prepend to :data:`SERVER_NAME`.
-        :param url_scheme: Scheme to use instead of
-            :data:`PREFERRED_URL_SCHEME`.
-        :param data: The request body text or bytes,or a dict of form data.
-        :param json: If given, this is serialized as JSON and passed as
-            ``data``. Also defaults ``content_type`` to
-            ``application/json``.
-        :param args: Other positional arguments passed to
-            :class:`~werkzeug.test.EnvironBuilder`.
-        :param kwargs: Other keyword arguments passed to
-            :class:`~werkzeug.test.EnvironBuilder`.
+        :param path: 正在请求 URL 路径。
+        :param base_url: 提供应用程序的基础 URL，与 ``path`` 相关。如果未给出，则从
+            :data:`PREFERRED_URL_SCHEME` 、 ``subdomain`` 、 :data:`SERVER_NAME` 和
+            :data:`APPLICATION_ROOT` 构建。
+        :param subdomain: 要添加到 :data:`SERVER_NAME` 前面的子域名。
+        :param url_scheme: 使用方案代替 :data:`PREFERRED_URL_SCHEME` 。
+        :param data: 请求正文文本或字节，或表单数据的字典。
+        :param json: 如果给定，则将其序列化为 JSON 并作为 ``data`` 传递。还将
+            ``content_type`` 默认为 ``application/json`` 。
+        :param args: 其他位置参数传递给 :class:`~werkzeug.test.EnvironBuilder` 。
+        :param kwargs: 其他关键字参数传递给 :class:`~werkzeug.test.EnvironBuilder` 。
         """
         from .testing import EnvironBuilder
 
@@ -1566,28 +1409,24 @@ class Flask(App):
     def wsgi_app(
         self, environ: WSGIEnvironment, start_response: StartResponse
     ) -> cabc.Iterable[bytes]:
-        """The actual WSGI application. This is not implemented in
-        :meth:`__call__` so that middlewares can be applied without
-        losing a reference to the app object. Instead of doing this::
+        """实际的 WSGI 应用程序。这没有在 :meth:`__call__` 中实现，因此可以应用中间件而
+        不会丢失对应用程序对象的引用。而不是这样做::
 
             app = MyMiddleware(app)
 
-        It's a better idea to do this instead::
+        这样做是一个更好的主意::
 
             app.wsgi_app = MyMiddleware(app.wsgi_app)
 
-        Then you still have the original application object around and
-        can continue to call methods on it.
+        然后，您仍然拥有原始应用程序对象，并且可以继续调用它的方法。
 
         .. versionchanged:: 0.7
-            Teardown events for the request and app contexts are called
-            even if an unhandled error occurs. Other events may not be
-            called depending on when an error occurs during dispatch.
+            即使发生未处理的错误，也会调用请求和应用程序上下文的清理事件。根据调度期间发
+            生错误的时间，可能不会调用其他事件。
 
-        :param environ: A WSGI environment.
-        :param start_response: A callable accepting a status code,
-            a list of headers, and an optional exception context to
-            start the response.
+        :param environ: WSGI 环境。
+        :param start_response: 可调用接受状态代码、标头列表和用于启动响应的可选异常上下
+            文。
         """
         ctx = self.request_context(environ)
         error: BaseException | None = None
@@ -1618,8 +1457,7 @@ class Flask(App):
     def __call__(
         self, environ: WSGIEnvironment, start_response: StartResponse
     ) -> cabc.Iterable[bytes]:
-        """The WSGI server calls the Flask application object as the
-        WSGI application. This calls :meth:`wsgi_app`, which can be
-        wrapped to apply middleware.
+        """WSGI 服务器将 Flask 应用程序对象调用为 WSGI 应用程序。这会调用
+        :meth:`wsgi_app` ，它可以被包装以应用中间件。
         """
         return self.wsgi_app(environ, start_response)

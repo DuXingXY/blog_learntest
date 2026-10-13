@@ -19,24 +19,23 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 
 def _default_template_ctx_processor() -> dict[str, t.Any]:
-    """Default template context processor.  Replaces the ``request`` and ``g``
-    proxies with their concrete objects for faster access.
+    """默认模板上下文处理器。  将 ``request`` 和 ``g`` 代理替换为其具体对象，以便更快地
+    访问。
     """
     ctx = app_ctx._get_current_object()
     rv: dict[str, t.Any] = {"g": ctx.g}
 
     if ctx.has_request:
         rv["request"] = ctx.request
-        # The session proxy cannot be replaced, accessing it gets
-        # RequestContext.session, which sets session.accessed.
+        # 会话代理无法替换，访问它会获取 RequestContext.session，从而设置
+        # session.accessed。
 
     return rv
 
 
 class Environment(BaseEnvironment):
-    """Works like a regular Jinja environment but has some additional
-    knowledge of how Flask's blueprint works so that it can prepend the
-    name of the blueprint to referenced templates if necessary.
+    """与常规 Jinja 环境类似，但对 Flask 的蓝图如何工作有一些额外的了解，以便在必要时可
+    以将蓝图的名称添加到引用的模板中。
     """
 
     def __init__(self, app: App, **options: t.Any) -> None:
@@ -47,9 +46,7 @@ class Environment(BaseEnvironment):
 
 
 class DispatchingJinjaLoader(BaseLoader):
-    """A loader that looks for templates in the application and all
-    the blueprint folders.
-    """
+    """一个加载程序，用于在应用程序和所有蓝图文件夹中查找模板。"""
 
     def __init__(self, app: App) -> None:
         self.app = app
@@ -137,11 +134,11 @@ def render_template(
     template_name_or_list: str | Template | list[str | Template],
     **context: t.Any,
 ) -> str:
-    """Render a template by name with the given context.
+    """根据给定上下文的名称渲染模板。
 
-    :param template_name_or_list: The name of the template to render. If
-        a list is given, the first name to exist will be rendered.
-    :param context: The variables to make available in the template.
+    :param template_name_or_list: 要渲染的模板的名称。如果给出了一个列表，则会呈现第一个
+        存在的名称。
+    :param context: 在模板中可用的变量。
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.get_or_select_template(template_name_or_list)
@@ -149,11 +146,10 @@ def render_template(
 
 
 def render_template_string(source: str, **context: t.Any) -> str:
-    """Render a template from the given source string with the given
-    context.
+    """使用给定的上下文从给定的源字符串渲染模板。
 
-    :param source: The source code of the template to render.
-    :param context: The variables to make available in the template.
+    :param source: 要呈现的模板的源代码。
+    :param context: 在模板中可用的变量。
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
@@ -182,13 +178,12 @@ def stream_template(
     template_name_or_list: str | Template | list[str | Template],
     **context: t.Any,
 ) -> t.Iterator[str]:
-    """Render a template by name with the given context as a stream.
-    This returns an iterator of strings, which can be used as a
-    streaming response from a view.
+    """使用给定上下文按名称渲染模板作为流。这会返回一个字符串迭代器，它可以用作视图的流
+    响应。
 
-    :param template_name_or_list: The name of the template to render. If
-        a list is given, the first name to exist will be rendered.
-    :param context: The variables to make available in the template.
+    :param template_name_or_list: 要渲染的模板的名称。如果给出了一个列表，则会呈现第一个
+        存在的名称。
+    :param context: 在模板中可用的变量。
 
     .. versionadded:: 2.2
     """
@@ -198,12 +193,11 @@ def stream_template(
 
 
 def stream_template_string(source: str, **context: t.Any) -> t.Iterator[str]:
-    """Render a template from the given source string with the given
-    context as a stream. This returns an iterator of strings, which can
-    be used as a streaming response from a view.
+    """使用给定的上下文将给定的源字符串渲染为流模板。这会返回一个字符串迭代器，它可以用
+    作视图的流响应。
 
-    :param source: The source code of the template to render.
-    :param context: The variables to make available in the template.
+    :param source: 要呈现的模板的源代码。
+    :param context: 在模板中可用的变量。
 
     .. versionadded:: 2.2
     """

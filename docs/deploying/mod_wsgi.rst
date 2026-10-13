@@ -35,7 +35,7 @@ Create a virtualenv, install your application, then install
     $ cd hello-app
     $ python -m venv .venv
     $ . .venv/bin/activate
-    $ pip install .  # install your application
+    $ pip install .  # 安装您的应用程序
     $ pip install mod_wsgi
 
 

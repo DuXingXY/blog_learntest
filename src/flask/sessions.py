@@ -22,52 +22,44 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 
 class SessionMixin(MutableMapping[str, t.Any]):
-    """Expands a basic dictionary with session attributes."""
+    """使用会话属性扩展基本字典。"""
 
     @property
     def permanent(self) -> bool:
-        """This reflects the ``'_permanent'`` key in the dict."""
+        """这反映了字典中的 ``'_permanent'`` 键。"""
         return self.get("_permanent", False)  # type: ignore[no-any-return]
 
     @permanent.setter
     def permanent(self, value: bool) -> None:
         self["_permanent"] = bool(value)
 
-    #: Some implementations can detect whether a session is newly
-    #: created, but that is not guaranteed. Use with caution. The mixin
-    # default is hard-coded ``False``.
+    #: 某些实现可以检测会话是否是新创建的，但这并不能保证。谨慎使用。混音
+    # 默认为硬编码 ``False`` 。
     new = False
 
-    #: Some implementations can detect changes to the session and set
-    #: this when that happens. The mixin default is hard coded to
-    #: ``True``.
+    #: 某些实现可以检测会话的更改并在发生更改时进行设置。 mixin 默认值被硬编码为
+    #: ``True`` 。
     modified = True
 
     accessed = False
-    """Indicates if the session was accessed, even if it was not modified. This
-    is set when the session object is accessed through the request context,
-    including the global :data:`.session` proxy. A ``Vary: cookie`` header will
-    be added if this is ``True``.
+    """指示会话是否被访问，即使它没有被修改。当通过请求上下文（包括全局 :data:`.session`
+    代理）访问会话对象时，会设置此值。如果是 ``True`` ，则会添加 ``Vary: cookie`` 标头。
 
     .. versionchanged:: 3.1.3
-        This is tracked by the request context.
+        这是由请求上下文跟踪的。
     """
 
 
 class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
-    """Base class for sessions based on signed cookies.
+    """基于签名 cookie 的会话的基类。
 
-    This session backend will set the :attr:`modified` and
-    :attr:`accessed` attributes. It cannot reliably track whether a
-    session is new (vs. empty), so :attr:`new` remains hard coded to
-    ``False``.
+    该会话后端将设置 :attr:`modified` 和 :attr:`accessed` 属性。它无法可靠地跟踪会话是否
+    是新的（还是空的），因此 :attr:`new` 仍然硬编码为 ``False`` 。
     """
 
-    #: When data is changed, this is set to ``True``. Only the session
-    #: dictionary itself is tracked; if the session contains mutable
-    #: data (for example a nested dict) then this must be set to
-    #: ``True`` manually when modifying that data. The session cookie
-    #: will only be written to the response if this is ``True``.
+    #: 当数据更改时，它被设置为 ``True`` 。仅跟踪会话字典本身；如果会话包含可变数据（例
+    #: 如嵌套字典），则在修改该数据时必须手动将其设置为 ``True`` 。仅当这是 ``True`` 时
+    #: ，会话 cookie 才会写入响应。
     modified = False
 
     def __init__(
@@ -81,9 +73,8 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
 
 
 class NullSession(SecureCookieSession):
-    """Class used to generate nicer error messages if sessions are not
-    available.  Will still allow read-only access to the empty session
-    but fail on setting.
+    """用于在会话不可用时生成更好的错误消息的类。  仍将允许对空会话进行只读访问，但设置
+    失败。
     """
 
     def _fail(self, *args: t.Any, **kwargs: t.Any) -> t.NoReturn:
@@ -98,146 +89,119 @@ class NullSession(SecureCookieSession):
 
 
 class SessionInterface:
-    """The basic interface you have to implement in order to replace the
-    default session interface which uses werkzeug's securecookie
-    implementation.  The only methods you have to implement are
-    :meth:`open_session` and :meth:`save_session`, the others have
-    useful defaults which you don't need to change.
+    """为了替换使用 werkzeug 的 securecookie 实现的默认会话接口，您必须实现基本接口。
+    您必须实现的唯一方法是 :meth:`open_session` 和 :meth:`save_session` ，其他方法具有有
+    用的默认值，您无需更改。
 
-    The session object returned by the :meth:`open_session` method has to
-    provide a dictionary like interface plus the properties and methods
-    from the :class:`SessionMixin`.  We recommend just subclassing a dict
-    and adding that mixin::
+    :meth:`open_session` 方法返回的会话对象必须提供类似字典的接口以及
+    :class:`SessionMixin` 中的属性和方法。  我们建议只对 dict 进行子类化并添加 mixin::
 
         class Session(dict, SessionMixin):
             pass
 
-    If :meth:`open_session` returns ``None`` Flask will call into
-    :meth:`make_null_session` to create a session that acts as replacement
-    if the session support cannot work because some requirement is not
-    fulfilled.  The default :class:`NullSession` class that is created
-    will complain that the secret key was not set.
+    如果 :meth:`open_session` 返回 ``None`` Flask 将调用 :meth:`make_null_session` 来创
+    建一个会话，如果会话支持因某些要求未满足而无法工作，则该会话将充当替换。  创建的默认
+    :class:`NullSession` 类会抱怨未设置密钥。
 
-    To replace the session interface on an application all you have to do
-    is to assign :attr:`flask.Flask.session_interface`::
+    要替换应用程序上的会话接口，您只需分配 :attr:`flask.Flask.session_interface` ::
 
         app = Flask(__name__)
         app.session_interface = MySessionInterface()
 
-    Multiple requests with the same session may be sent and handled
-    concurrently. When implementing a new session interface, consider
-    whether reads or writes to the backing store must be synchronized.
-    There is no guarantee on the order in which the session for each
-    request is opened or saved, it will occur in the order that requests
-    begin and end processing.
+    可以同时发送和处理同一会话的多个请求。实现新的会话接口时，请考虑是否必须同步对后备存
+    储的读取或写入。无法保证每个请求的会话打开或保存的顺序，它将按照请求开始和结束处理的
+    顺序发生。
 
     .. versionadded:: 0.8
     """
 
-    #: :meth:`make_null_session` will look here for the class that should
-    #: be created when a null session is requested.  Likewise the
-    #: :meth:`is_null_session` method will perform a typecheck against
-    #: this type.
+    #: :meth:`make_null_session` 将在此处查找请求空会话时应创建的类。  同样，
+    #: :meth:`is_null_session` 方法将针对此类型执行类型检查。
     null_session_class = NullSession
 
-    #: A flag that indicates if the session interface is pickle based.
-    #: This can be used by Flask extensions to make a decision in regards
-    #: to how to deal with the session object.
+    #: 指示会话接口是否基于 pickle 的标志。 Flask 扩展可以使用它来决定如何处理会话对象。
     #:
     #: .. versionadded:: 0.10
     pickle_based = False
 
     def make_null_session(self, app: Flask) -> NullSession:
-        """Creates a null session which acts as a replacement object if the
-        real session support could not be loaded due to a configuration
-        error.  This mainly aids the user experience because the job of the
-        null session is to still support lookup without complaining but
-        modifications are answered with a helpful error message of what
-        failed.
+        """创建一个空会话，如果由于配置错误而无法加载真实会话支持，则该会话充当替换对象
+        。  这主要有助于改善用户体验，因为空会话的工作仍然支持查找而不抱怨，但修改会通过
+        失败的有用错误消息来回答。
 
-        This creates an instance of :attr:`null_session_class` by default.
+        默认情况下，这会创建 :attr:`null_session_class` 的实例。
         """
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
-        """Checks if a given object is a null session.  Null sessions are
-        not asked to be saved.
+        """检查给定对象是否为空会话。  不要求保存空会话。
 
-        This checks if the object is an instance of :attr:`null_session_class`
-        by default.
+        默认情况下，这会检查该对象是否是 :attr:`null_session_class` 的实例。
         """
         return isinstance(obj, self.null_session_class)
 
     def get_cookie_name(self, app: Flask) -> str:
-        """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        """会话 cookie 的名称。使用 ``app.config["SESSION_COOKIE_NAME"]`` 。"""
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
-        """The value of the ``Domain`` parameter on the session cookie. If not set,
-        browsers will only send the cookie to the exact domain it was set from.
-        Otherwise, they will send it to any subdomain of the given value as well.
+        """会话 cookie 上 ``Domain`` 参数的值。如果未设置，浏览器只会将 cookie 发送到设
+        置它的确切域。否则，他们也会将其发送到给定值的任何子域。
 
-        Uses the :data:`SESSION_COOKIE_DOMAIN` config.
+        使用 :data:`SESSION_COOKIE_DOMAIN` 配置。
 
         .. versionchanged:: 2.3
-            Not set by default, does not fall back to ``SERVER_NAME``.
+            默认情况下未设置，不会回退到 ``SERVER_NAME`` 。
         """
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
-        """Returns the path for which the cookie should be valid.  The
-        default implementation uses the value from the ``SESSION_COOKIE_PATH``
-        config var if it's set, and falls back to ``APPLICATION_ROOT`` or
-        uses ``/`` if it's ``None``.
+        """返回 cookie 应该有效的路径。  默认实现使用 ``SESSION_COOKIE_PATH`` 配置变量中
+        的值（如果已设置），并回退到 ``APPLICATION_ROOT`` 或使用 ``/`` （如果是 ``None``
+        ）。
         """
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
-        """Returns True if the session cookie should be httponly.  This
-        currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
-        config var.
+        """如果会话 cookie 应该是 httponly，则返回 True。  目前，这仅返回
+        ``SESSION_COOKIE_HTTPONLY`` 配置变量的值。
         """
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
-        """Returns True if the cookie should be secure.  This currently
-        just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
+        """如果 cookie 应该是安全的，则返回 True。  目前，这仅返回
+        ``SESSION_COOKIE_SECURE`` 设置的值。
         """
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
-        """Return ``'Strict'`` or ``'Lax'`` if the cookie should use the
-        ``SameSite`` attribute. This currently just returns the value of
-        the :data:`SESSION_COOKIE_SAMESITE` setting.
+        """如果 cookie 应使用 ``SameSite`` 属性，则返回 ``'Strict'`` 或 ``'Lax'`` 。目前
+        ，这仅返回 :data:`SESSION_COOKIE_SAMESITE` 设置的值。
         """
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
-        """Returns True if the cookie should be partitioned. By default, uses
-        the value of :data:`SESSION_COOKIE_PARTITIONED`.
+        """如果应该对 cookie 进行分区，则返回 True。默认情况下，使用
+        :data:`SESSION_COOKIE_PARTITIONED` 的值。
 
         .. versionadded:: 3.1
         """
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
-        """A helper method that returns an expiration date for the session
-        or ``None`` if the session is linked to the browser session.  The
-        default implementation returns now + the permanent session
-        lifetime configured on the application.
+        """一个帮助器方法，返回会话的到期日期或 ``None`` （如果会话链接到浏览器会话）。
+        默认实现返回 now + 应用程序上配置的永久会话生存期。
         """
         if session.permanent:
             return datetime.now(UTC) + app.permanent_session_lifetime
         return None
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
-        """Used by session backends to determine if a ``Set-Cookie`` header
-        should be set for this session cookie for this response. If the session
-        has been modified, the cookie is set. If the session is permanent and
-        the ``SESSION_REFRESH_EACH_REQUEST`` config is true, the cookie is
-        always set.
+        """会话后端使用它来确定是否应为此响应的会话 cookie 设置 ``Set-Cookie`` 标头。如
+        果会话已被修改，则设置 cookie。如果会话是永久的并且
+        ``SESSION_REFRESH_EACH_REQUEST`` 配置为 true，则始终设置 cookie。
 
-        This check is usually skipped if the session was deleted.
+        如果会话被删除，则通常会跳过此检查。
 
         .. versionadded:: 0.11
         """
@@ -247,25 +211,20 @@ class SessionInterface:
         )
 
     def open_session(self, app: Flask, request: Request) -> SessionMixin | None:
-        """This is called at the beginning of each request, after
-        pushing the request context, before matching the URL.
+        """这在每个请求开始时、推送请求上下文之后、匹配 URL 之前调用。
 
-        This must return an object which implements a dictionary-like
-        interface as well as the :class:`SessionMixin` interface.
+        这必须返回一个实现类字典接口以及 :class:`SessionMixin` 接口的对象。
 
-        This will return ``None`` to indicate that loading failed in
-        some way that is not immediately an error. The request
-        context will fall back to using :meth:`make_null_session`
-        in this case.
+        这将返回 ``None`` 来指示加载以某种方式失败，但不会立即出现错误。在这种情况下，请
+        求上下文将回退到使用 :meth:`make_null_session` 。
         """
         raise NotImplementedError()
 
     def save_session(
         self, app: Flask, session: SessionMixin, response: Response
     ) -> None:
-        """This is called at the end of each request, after generating
-        a response, before removing the request context. It is skipped
-        if :meth:`is_null_session` returns ``True``.
+        """这是在每个请求结束时、生成响应之后、删除请求上下文之前调用的。如果
+        :meth:`is_null_session` 返回 ``True`` ，则跳过它。
         """
         raise NotImplementedError()
 
@@ -274,29 +233,23 @@ session_json_serializer = TaggedJSONSerializer()
 
 
 def _lazy_sha1(string: bytes = b"") -> t.Any:
-    """Don't access ``hashlib.sha1`` until runtime. FIPS builds may not include
-    SHA-1, in which case the import and use as a default would fail before the
-    developer can configure something else.
+    """在运行时之前不要访问 ``hashlib.sha1`` 。 FIPS 版本可能不包含 SHA-1，在这种情况下
+    ，在开发人员可以配置其他内容之前，作为默认值导入和使用将会失败。
     """
     return hashlib.sha1(string)
 
 
 class SecureCookieSessionInterface(SessionInterface):
-    """The default session interface that stores sessions in signed cookies
-    through the :mod:`itsdangerous` module.
-    """
+    """默认会话接口，通过 :mod:`itsdangerous` 模块将会话存储在签名的 cookie 中。"""
 
-    #: the salt that should be applied on top of the secret key for the
-    #: signing of cookie based sessions.
+    #: 应用于签署基于 cookie 的会话的密钥之上的盐。
     salt = "cookie-session"
-    #: the hash function to use for the signature.  The default is sha1
+    #: 用于签名的哈希函数。  默认是sha1
     digest_method = staticmethod(_lazy_sha1)
-    #: the name of the itsdangerous supported key derivation.  The default
-    #: is hmac.
+    #: itsdangerous 支持的密钥派生的名称。  默认为 hmac。
     key_derivation = "hmac"
-    #: A python serializer for the payload.  The default is a compact
-    #: JSON derived serializer with support for some extra Python types
-    #: such as datetime objects or tuples.
+    #: 有效负载的 python 序列化器。  默认是一个紧凑的 JSON 派生序列化器，支持一些额外的
+    #: Python 类型，例如日期时间对象或元组。
     serializer = session_json_serializer
     session_class = SecureCookieSession
 
@@ -309,7 +262,7 @@ class SecureCookieSessionInterface(SessionInterface):
         if fallbacks := app.config["SECRET_KEY_FALLBACKS"]:
             keys.extend(fallbacks)
 
-        keys.append(app.secret_key)  # itsdangerous expects current key at top
+        keys.append(app.secret_key)  # itsdangerous 预计当前键位于顶部
         return URLSafeTimedSerializer(
             keys,  # type: ignore[arg-type]
             salt=self.salt,
@@ -345,12 +298,11 @@ class SecureCookieSessionInterface(SessionInterface):
         samesite = self.get_cookie_samesite(app)
         httponly = self.get_cookie_httponly(app)
 
-        # Add a "Vary: Cookie" header if the session was accessed at all.
+        # 如果会话被访问，请添加 "Vary: Cookie" 标头。
         if session.accessed:
             response.vary.add("Cookie")
 
-        # If the session is modified to be empty, remove the cookie.
-        # If the session is empty, return without setting the cookie.
+        # 如果session修改为空，则删除cookie。如果会话为空，则返回而不设置cookie。
         if not session:
             if session.modified:
                 response.delete_cookie(

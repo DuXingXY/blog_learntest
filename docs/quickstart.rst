@@ -183,17 +183,17 @@ of the argument like ``<converter:variable_name>``. ::
 
     @app.route('/user/<username>')
     def show_user_profile(username):
-        # show the user profile for that user
+        # 显示该用户的用户个人资料
         return f'User {escape(username)}'
 
     @app.route('/post/<int:post_id>')
     def show_post(post_id):
-        # show the post with the given id, the id is an integer
+        # 显示给定 id 的帖子，id 是一个整数
         return f'Post {post_id}'
 
     @app.route('/path/<path:subpath>')
     def show_subpath(subpath):
-        # show the subpath after /path/
+        # 显示/path/之后的子路径
         return f'Subpath {escape(subpath)}'
 
 Converter types:
@@ -482,7 +482,7 @@ dict.
             else:
                 error = "Invalid username or password"
 
-        # Executed if the request method was GET or the credentials were invalid.
+        # 如果请求方法为 GET 或凭据无效，则执行。
         return render_template("login.html", error=error)
 
 If the key does not exist in ``form``, a special :exc:`KeyError` is raised. You
@@ -566,8 +566,8 @@ Reading cookies::
     @app.route('/')
     def index():
         username = request.cookies.get('username')
-        # use cookies.get(key) instead of cookies[key] to not get a
-        # KeyError if the cookie is missing.
+        # 使用 cookies.get(key) 而不是 cookies[key] 来不获取
+        # 如果 cookie 丢失，则为 KeyError。
 
 Storing cookies::
 
@@ -733,7 +733,7 @@ sessions work::
 
     from flask import session
 
-    # Set the secret key to some random bytes. Keep this really secret!
+    # 将密钥设置为一些随机字节。保守秘密！
     app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
     @app.route('/')
@@ -756,7 +756,7 @@ sessions work::
 
     @app.route('/logout')
     def logout():
-        # remove the username from the session if it's there
+        # 从会话中删除用户名（如果存在）
         session.pop('username', None)
         return redirect(url_for('index'))
 

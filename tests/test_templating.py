@@ -429,8 +429,8 @@ def test_iterable_loader(app, client):
     def index():
         return flask.render_template(
             [
-                "no_template.xml",  # should skip this one
-                "simple_template.html",  # should render this
+                "no_template.xml",  # 应该跳过这个
+                "simple_template.html",  # 应该呈现这个
                 "context_template.html",
             ],
             value=23,
@@ -441,31 +441,31 @@ def test_iterable_loader(app, client):
 
 
 def test_templates_auto_reload(app):
-    # debug is False, config option is None
+    # 调试是 False，配置选项是 None
     assert app.debug is False
     assert app.config["TEMPLATES_AUTO_RELOAD"] is None
     assert app.jinja_env.auto_reload is False
-    # debug is False, config option is False
+    # 调试是 False，配置选项是 False
     app = flask.Flask(__name__)
     app.config["TEMPLATES_AUTO_RELOAD"] = False
     assert app.debug is False
     assert app.jinja_env.auto_reload is False
-    # debug is False, config option is True
+    # 调试是 False，配置选项是 True
     app = flask.Flask(__name__)
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     assert app.debug is False
     assert app.jinja_env.auto_reload is True
-    # debug is True, config option is None
+    # 调试是 True，配置选项是 None
     app = flask.Flask(__name__)
     app.config["DEBUG"] = True
     assert app.config["TEMPLATES_AUTO_RELOAD"] is None
     assert app.jinja_env.auto_reload is True
-    # debug is True, config option is False
+    # 调试是 True，配置选项是 False
     app = flask.Flask(__name__)
     app.config["DEBUG"] = True
     app.config["TEMPLATES_AUTO_RELOAD"] = False
     assert app.jinja_env.auto_reload is False
-    # debug is True, config option is True
+    # 调试是 True，配置选项是 True
     app = flask.Flask(__name__)
     app.config["DEBUG"] = True
     app.config["TEMPLATES_AUTO_RELOAD"] = True

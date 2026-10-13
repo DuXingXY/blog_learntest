@@ -107,7 +107,7 @@ def test_path_is_url(app):
 
 
 def test_environbuilder_json_dumps(app):
-    """EnvironBuilder.json_dumps() takes settings from the app."""
+    """EnvironBuilder.json_dumps() 从应用程序获取设置。"""
     app.json.ensure_ascii = False
     eb = EnvironBuilder(app, json="\u20ac")
     assert eb.input_stream.read().decode("utf8") == '"\u20ac"'
@@ -271,11 +271,11 @@ def test_json_request_and_response(app, client):
         json_data = {"drink": {"gin": 1, "tonic": True}, "price": 10}
         rv = client.post("/echo", json=json_data)
 
-        # Request should be in JSON
+        # Request 应该在 JSON 中
         assert flask.request.is_json
         assert flask.request.get_json() == json_data
 
-        # Response should be in JSON
+        # Response 应该在 JSON 中
         assert rv.status_code == 200
         assert rv.is_json
         assert rv.get_json() == json_data
@@ -355,10 +355,10 @@ def test_cli_invoke(app):
         click.echo("Hello, World!")
 
     runner = app.test_cli_runner()
-    # invoke with command name
+    # 使用命令名称调用
     result = runner.invoke(args=["hello"])
     assert "Hello" in result.output
-    # invoke with command object
+    # 使用命令对象调用
     result = runner.invoke(hello_command)
     assert "Hello" in result.output
 
@@ -384,15 +384,15 @@ def test_cli_custom_obj(app):
 def test_client_pop_all_preserved(app, req_ctx, client):
     @app.route("/")
     def index():
-        # stream_with_context pushes a third context, preserved by response
+        # stream_with_context 推送第三个上下文，由响应保留
         return flask.stream_with_context("hello")
 
-    # req_ctx fixture pushed an initial context
+    # req_ctx 夹具推送了初始上下文
     with client:
-        # request pushes a second request context, preserved by client
+        # 请求推送第二个请求上下文，由客户端保留
         rv = client.get("/")
 
-    # close the response, releasing the context held by stream_with_context
+    # 关闭响应，释放 stream_with_context 持有的上下文
     rv.close()
-    # only req_ctx fixture should still be pushed
+    # 只有 req_ctx 夹具仍应被推送
     assert _cv_app.get(None) is req_ctx

@@ -50,13 +50,13 @@ the file and redirects the user to the URL for the uploaded file::
     @app.route('/', methods=['GET', 'POST'])
     def upload_file():
         if request.method == 'POST':
-            # check if the post request has the file part
+            # 检查post请求是否包含文件部分
             if 'file' not in request.files:
                 flash('No file part')
                 return redirect(request.url)
             file = request.files['file']
-            # If the user does not select a file, the browser submits an
-            # empty file without a filename.
+            # 如果用户没有选择文件，浏览器会提交一个
+            # 没有文件名的空文件。
             if file.filename == '':
                 flash('No selected file')
                 return redirect(request.url)

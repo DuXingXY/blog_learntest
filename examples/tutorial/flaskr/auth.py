@@ -17,7 +17,7 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def login_required(view):
-    """View decorator that redirects anonymous users to the login page."""
+    """将匿名用户重定向到登录页面的视图装饰器。"""
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -31,8 +31,7 @@ def login_required(view):
 
 @bp.before_app_request
 def load_logged_in_user():
-    """If a user id is stored in the session, load the user object from
-    the database into ``g.user``."""
+    """如果用户 ID 存储在会话中，则将用户对象从数据库加载到 ``g.user`` 中。"""
     user_id = session.get("user_id")
 
     if user_id is None:
@@ -45,10 +44,9 @@ def load_logged_in_user():
 
 @bp.route("/register", methods=("GET", "POST"))
 def register():
-    """Register a new user.
+    """注册新用户。
 
-    Validates that the username is not already taken. Hashes the
-    password for security.
+    验证用户名尚未被占用。为了安全起见，对密码进行哈希处理。
     """
     if request.method == "POST":
         username = request.form["username"]
@@ -69,11 +67,10 @@ def register():
                 )
                 db.commit()
             except db.IntegrityError:
-                # The username was already taken, which caused the
-                # commit to fail. Show a validation error.
+                # 用户名已被占用，导致提交失败。显示验证错误。
                 error = f"User {username} is already registered."
             else:
-                # Success, go to the login page.
+                # 成功，进入登录页面。
                 return redirect(url_for("auth.login"))
 
         flash(error)
@@ -83,7 +80,7 @@ def register():
 
 @bp.route("/login", methods=("GET", "POST"))
 def login():
-    """Log in a registered user by adding the user id to the session."""
+    """通过将用户 ID 添加到会话来登录注册用户。"""
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -99,7 +96,7 @@ def login():
             error = "Incorrect password."
 
         if error is None:
-            # store the user id in a new session and return to the index
+            # 将用户 ID 存储在新会话中并返回索引
             session.clear()
             session["user_id"] = user["id"]
             return redirect(url_for("index"))
@@ -111,6 +108,6 @@ def login():
 
 @bp.route("/logout")
 def logout():
-    """Clear the current session, including the stored user id."""
+    """清除当前会话，包括存储的用户 ID。"""
     session.clear()
     return redirect(url_for("index"))

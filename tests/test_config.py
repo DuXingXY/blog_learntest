@@ -6,7 +6,7 @@ import pytest
 
 import flask
 
-# config keys used for the TestConfig
+# 用于 TestConfig 的配置键
 TEST_KEY = "foo"
 SECRET_KEY = "config"
 
@@ -94,7 +94,7 @@ def test_from_prefixed_env_nested(monkeypatch):
             "new": {"more": {"k": False}},
         }
     else:
-        # Windows env var keys are always uppercase.
+        # Windows 环境变量键始终为大写。
         assert app.config["EXIST"] == {
             "ok": "value",
             "OK": "other",
